@@ -14,6 +14,14 @@ from .config import (
     DEFAULT_TEMPERATURE,
     DEFAULT_MAX_TOKENS,
 )
+from .logger import get_logger, RequestLogger
+from .exceptions import (
+    ChatbotAPIError,
+    APIError,
+    AuthenticationError,
+    ModelNotFoundError,
+    ProviderError,
+)
 
 
 class Provider(str, Enum):
@@ -44,6 +52,7 @@ class ChatbotWrapper:
             use_local_hf: Use local HuggingFace models instead of API
             hf_device: Device for local HuggingFace models ('cpu', 'cuda', 'auto')
         """
+        self.logger = get_logger("api_wrapper.chatbot_wrapper")
         self.hf_client: Optional[HuggingFaceClient] = None
         self.openai_client: Optional[OpenAIClient] = None
 
@@ -53,15 +62,23 @@ class ChatbotWrapper:
                 self.hf_client = HuggingFaceClient(
                     api_key=huggingface_api_key, use_local=use_local_hf, device=hf_device
                 )
+                self.logger.info("HuggingFace client initialized successfully")
             except Exception as e:
-                print(f"Warning: Failed to initialize HuggingFace client: {e}")
+                self.logger.warning(
+                    f"Failed to initialize HuggingFace client: {e}",
+                    exc_info=True
+                )
 
         # Initialize OpenAI client if key is provided
         if openai_api_key:
             try:
                 self.openai_client = OpenAIClient(api_key=openai_api_key)
+                self.logger.info("OpenAI client initialized successfully")
             except Exception as e:
-                print(f"Warning: Failed to initialize OpenAI client: {e}")
+                self.logger.warning(
+                    f"Failed to initialize OpenAI client: {e}",
+                    exc_info=True
+                )
 
     def _detect_provider(self, model: str) -> Provider:
         """
@@ -125,30 +142,38 @@ class ChatbotWrapper:
         # Route to appropriate client
         if provider == Provider.HUGGINGFACE:
             if not self.hf_client:
-                raise ValueError(
+                raise AuthenticationError(
                     "HuggingFace client not initialized. Provide huggingface_api_key or set use_local_hf=True."
                 )
-            return self.hf_client.chat(
-                model_id=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                **kwargs,
-            )
+            with RequestLogger(
+                self.logger, "chat", model, "huggingface",
+                temperature=temperature, max_tokens=max_tokens
+            ):
+                return self.hf_client.chat(
+                    model_id=model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    **kwargs,
+                )
         elif provider == Provider.OPENAI:
             if not self.openai_client:
-                raise ValueError(
+                raise AuthenticationError(
                     "OpenAI client not initialized. Provide openai_api_key."
                 )
-            return self.openai_client.chat(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                **kwargs,
-            )
+            with RequestLogger(
+                self.logger, "chat", model, "openai",
+                temperature=temperature, max_tokens=max_tokens
+            ):
+                return self.openai_client.chat(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    **kwargs,
+                )
         else:
-            raise ValueError(f"Unknown provider: {provider}")
+            raise ProviderError(provider, f"Unknown provider: {provider}")
 
     def stream_chat(
         self,

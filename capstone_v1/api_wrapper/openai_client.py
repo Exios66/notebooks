@@ -13,6 +13,17 @@ from .config import (
     DEFAULT_MAX_TOKENS,
     DEFAULT_TOP_P,
 )
+from .logger import get_logger
+from .exceptions import (
+    APIError,
+    RateLimitError,
+    AuthenticationError,
+    ModelNotFoundError,
+    NetworkError,
+    TimeoutError,
+    QuotaExceededError,
+    ProviderError,
+)
 
 
 class OpenAIClient:
@@ -28,13 +39,15 @@ class OpenAIClient:
             api_key: OpenAI API key (if None, uses OPENAI_API_KEY env var)
             base_url: Custom base URL for API (optional, for compatible APIs)
         """
+        self.logger = get_logger("api_wrapper.openai_client")
         self.api_key = api_key or OPENAI_API_KEY
         if not self.api_key:
-            raise ValueError(
+            raise AuthenticationError(
                 "OpenAI API key is required. Set OPENAI_API_KEY environment variable or pass api_key parameter."
             )
 
         self.client = OpenAI(api_key=self.api_key, base_url=base_url)
+        self.logger.info("OpenAI client initialized successfully")
 
     def chat(
         self,
@@ -70,6 +83,7 @@ class OpenAIClient:
             formatted_messages = messages
 
         try:
+            self.logger.debug(f"Sending request to OpenAI API: {model}")
             response = self.client.chat.completions.create(
                 model=model,
                 messages=formatted_messages,
@@ -81,6 +95,7 @@ class OpenAIClient:
                 **kwargs,
             )
 
+            self.logger.debug(f"Successfully received response from {model}")
             return {
                 "response": response.choices[0].message.content,
                 "model": model,
@@ -92,8 +107,49 @@ class OpenAIClient:
                 },
                 "finish_reason": response.choices[0].finish_reason,
             }
+        except openai.RateLimitError as e:
+            raise RateLimitError(
+                f"OpenAI API rate limit exceeded: {str(e)}",
+                details={"model": model, "error": str(e)}
+            )
+        except openai.AuthenticationError as e:
+            raise AuthenticationError(
+                f"OpenAI API authentication failed: {str(e)}",
+                details={"model": model, "error": str(e)}
+            )
+        except openai.NotFoundError as e:
+            raise ModelNotFoundError(
+                model,
+                f"OpenAI model not found: {str(e)}",
+                details={"error": str(e)}
+            )
+        except openai.APIConnectionError as e:
+            raise NetworkError(
+                f"OpenAI API connection error: {str(e)}",
+                details={"model": model, "error": str(e)}
+            )
+        except openai.APITimeoutError as e:
+            raise TimeoutError(
+                f"OpenAI API request timeout: {str(e)}",
+                details={"model": model, "error": str(e)}
+            )
+        except openai.APIError as e:
+            # Check for quota exceeded
+            if "quota" in str(e).lower() or "billing" in str(e).lower():
+                raise QuotaExceededError(
+                    f"OpenAI API quota exceeded: {str(e)}",
+                    details={"model": model, "error": str(e)}
+                )
+            raise APIError(
+                f"OpenAI API request failed: {str(e)}",
+                details={"model": model, "error": str(e), "error_type": type(e).__name__}
+            )
         except Exception as e:
-            raise Exception(f"OpenAI API request failed: {str(e)}")
+            raise ProviderError(
+                "openai",
+                f"Unexpected error in OpenAI client: {str(e)}",
+                details={"model": model, "error": str(e), "error_type": type(e).__name__}
+            )
 
     def stream_chat(
         self,

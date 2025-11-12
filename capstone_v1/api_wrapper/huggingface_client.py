@@ -18,6 +18,16 @@ from .config import (
     DEFAULT_TOP_P,
     DEFAULT_TOP_K,
 )
+from .logger import get_logger
+from .exceptions import (
+    APIError,
+    RateLimitError,
+    AuthenticationError,
+    ModelNotFoundError,
+    NetworkError,
+    TimeoutError,
+    ProviderError,
+)
 
 
 class HuggingFaceClient:
@@ -39,6 +49,7 @@ class HuggingFaceClient:
             use_local: If True, load models locally instead of using Inference API
             device: Device to use for local models ('cpu', 'cuda', 'auto')
         """
+        self.logger = get_logger("api_wrapper.huggingface_client")
         self.api_key = api_key or HUGGINGFACE_API_KEY
         self.use_local = use_local
         self.device = device
@@ -52,6 +63,10 @@ class HuggingFaceClient:
                 self.device = "cuda" if torch.cuda.is_available() else "cpu"
             else:
                 self.device = device
+            self.logger.info(f"Using local models with device: {self.device}")
+        else:
+            if not self.api_key:
+                self.logger.warning("No HuggingFace API key provided. Some features may not work.")
 
     def _get_headers(self) -> Dict[str, str]:
         """Get headers for API requests"""
@@ -73,7 +88,7 @@ class HuggingFaceClient:
         if model_id in self.local_models:
             return self.local_models[model_id], self.local_tokenizers[model_id]
 
-        print(f"Loading model {model_id} locally...")
+        self.logger.info(f"Loading model {model_id} locally...")
         try:
             tokenizer = AutoTokenizer.from_pretrained(model_id)
             model = AutoModelForCausalLM.from_pretrained(
@@ -87,9 +102,15 @@ class HuggingFaceClient:
 
             self.local_tokenizers[model_id] = tokenizer
             self.local_models[model_id] = model
+            self.logger.info(f"Successfully loaded model {model_id}")
             return model, tokenizer
         except Exception as e:
-            raise Exception(f"Failed to load model {model_id}: {str(e)}")
+            self.logger.error(f"Failed to load model {model_id}: {str(e)}", exc_info=True)
+            raise ModelNotFoundError(
+                model_id,
+                f"Failed to load model: {str(e)}",
+                details={"error": str(e), "device": self.device}
+            )
 
     def chat(
         self,
@@ -159,9 +180,34 @@ class HuggingFaceClient:
         }
 
         try:
+            self.logger.debug(f"Sending request to HuggingFace API: {model_id}")
             response = requests.post(
                 url, headers=self._get_headers(), json=payload, timeout=120
             )
+            
+            # Handle rate limiting
+            if response.status_code == 429:
+                retry_after = int(response.headers.get("Retry-After", 60))
+                raise RateLimitError(
+                    "HuggingFace API rate limit exceeded",
+                    retry_after=retry_after,
+                    details={"model": model_id, "status_code": 429}
+                )
+            
+            # Handle authentication errors
+            if response.status_code == 401:
+                raise AuthenticationError(
+                    "Invalid HuggingFace API key",
+                    details={"model": model_id, "status_code": 401}
+                )
+            
+            # Handle model not found
+            if response.status_code == 404:
+                raise ModelNotFoundError(
+                    model_id,
+                    details={"status_code": 404}
+                )
+            
             response.raise_for_status()
 
             result = response.json()
@@ -174,14 +220,35 @@ class HuggingFaceClient:
             else:
                 generated_text = str(result)
 
+            self.logger.debug(f"Successfully received response from {model_id}")
             return {
                 "response": generated_text.strip(),
                 "model": model_id,
                 "provider": "huggingface",
                 "method": "api",
             }
+        except requests.exceptions.Timeout as e:
+            raise TimeoutError(
+                f"HuggingFace API request timeout",
+                timeout=120,
+                details={"model": model_id, "error": str(e)}
+            )
+        except requests.exceptions.ConnectionError as e:
+            raise NetworkError(
+                f"Network error connecting to HuggingFace API: {str(e)}",
+                details={"model": model_id, "error": str(e)}
+            )
+        except RateLimitError:
+            raise
+        except AuthenticationError:
+            raise
+        except ModelNotFoundError:
+            raise
         except requests.exceptions.RequestException as e:
-            raise Exception(f"HuggingFace API request failed: {str(e)}")
+            raise APIError(
+                f"HuggingFace API request failed: {str(e)}",
+                details={"model": model_id, "status_code": getattr(e.response, 'status_code', None)}
+            )
 
     def _chat_local(
         self,
