@@ -1,0 +1,34 @@
+# GitHub Pages Jekyll Configuration
+title: Chatbot API Wrapper Documentation
+description: Comprehensive documentation for the Chatbot API Wrapper supporting HuggingFace and OpenAI
+author: Capstone Project Team
+url: https://yourusername.github.io
+baseurl: /notebooks
+
+# Theme
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Navigation
+header_pages:
+  - index.md
+  - STARTUP_GUIDE.md
+  - getting-started.md
+  - api-reference.md
+  - api-endpoints.md
+  - examples.md
+  - chatbot-interface.html
+
+# Exclude files
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+
