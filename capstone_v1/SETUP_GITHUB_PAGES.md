@@ -47,6 +47,7 @@ git push -u origin main
 4. Click **Save**
 
 The workflow (`.github/workflows/deploy-gh-pages.yml`) will automatically:
+
 - Build the Jekyll site when you push to `main` or `master`
 - Deploy to GitHub Pages
 - Update the site automatically
@@ -150,6 +151,7 @@ bundle exec jekyll build
 To use a custom domain:
 
 1. **Add CNAME file**:
+
    ```bash
    echo "yourdomain.com" > docs/CNAME
    git add docs/CNAME
@@ -201,4 +203,3 @@ git push origin main
 ---
 
 **Note**: The first deployment may take a few minutes. Subsequent deployments are usually faster.
-

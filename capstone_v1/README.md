@@ -107,5 +107,3 @@ If you encounter any issues or have questions:
 ---
 
 © 2024 Capstone Team. All rights reserved.
-
-

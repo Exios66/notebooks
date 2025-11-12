@@ -7,16 +7,20 @@ This directory contains the GitHub Pages documentation site for the Chatbot API 
 To run the documentation site locally:
 
 1. Install Jekyll and dependencies:
+
 ```bash
+cd docs
 bundle install
 ```
 
 2. Run the Jekyll server:
+
 ```bash
-bundle exec jekyll serve
+cd docs
+bundle exec jekyll serve --livereload
 ```
 
-3. Open http://localhost:4000 in your browser
+3. Open  <http://localhost:4000> in your browser
 
 ## Structure
 
@@ -31,4 +35,3 @@ bundle exec jekyll serve
 ## Deployment
 
 This site can be deployed to GitHub Pages automatically when pushed to the repository.
-

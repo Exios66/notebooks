@@ -9,6 +9,7 @@ This guide explains how to deploy the documentation site to GitHub Pages.
 ### Option 1: Automatic Deployment (Jekyll)
 
 1. **Push to GitHub:**
+
    ```bash
    git add .
    git commit -m "Add documentation"
@@ -31,6 +32,7 @@ This guide explains how to deploy the documentation site to GitHub Pages.
 If you prefer static HTML without Jekyll:
 
 1. **Build static files** (if using Jekyll):
+
    ```bash
    bundle exec jekyll build
    ```
@@ -52,11 +54,12 @@ bundle install
 bundle exec jekyll serve
 ```
 
-Visit: http://localhost:4000
+Visit: <http://localhost:4000>
 
 ### Without Jekyll
 
 Simply open the HTML files in a browser:
+
 - `index.html` - Home page
 - `chatbot-interface.html` - Chatbot UI
 - Other markdown files can be viewed with a markdown viewer
@@ -66,6 +69,7 @@ Simply open the HTML files in a browser:
 To use a custom domain:
 
 1. Add `CNAME` file in `docs/` folder:
+
    ```
    yourdomain.com
    ```
@@ -109,4 +113,3 @@ docs/
 ├── Gemfile             # Ruby dependencies
 └── README.md           # Documentation README
 ```
-

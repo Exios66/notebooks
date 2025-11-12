@@ -15,6 +15,7 @@ The repository includes a GitHub Actions workflow that automatically deploys the
    - Save the settings
 
 2. **Push your changes:**
+
    ```bash
    git add .
    git commit -m "Update documentation"
@@ -35,23 +36,28 @@ The repository includes a GitHub Actions workflow that automatically deploys the
 ### Option 1: Using Jekyll (Recommended for Development)
 
 1. **Install dependencies:**
+
    ```bash
    cd docs
    bundle install
    ```
 
 2. **Build the site:**
+
    ```bash
    bundle exec jekyll build
    ```
 
 3. **Preview locally:**
+
    ```bash
    bundle exec jekyll serve
    ```
-   Visit: http://localhost:4000
+
+   Visit: <http://localhost:4000>
 
 4. **Deploy using script:**
+
    ```bash
    ./scripts/deploy-gh-pages.sh
    ```
@@ -59,6 +65,7 @@ The repository includes a GitHub Actions workflow that automatically deploys the
 ### Option 2: Using gh-pages Branch
 
 1. **Create or checkout gh-pages branch:**
+
    ```bash
    git checkout -b gh-pages
    # Or if branch exists:
@@ -66,18 +73,21 @@ The repository includes a GitHub Actions workflow that automatically deploys the
    ```
 
 2. **Build the site:**
+
    ```bash
    cd docs
    bundle exec jekyll build
    ```
 
 3. **Copy built files to root:**
+
    ```bash
    cp -r _site/* ../
    cd ..
    ```
 
 4. **Commit and push:**
+
    ```bash
    git add .
    git commit -m "Deploy documentation"
@@ -136,6 +146,7 @@ The `_config.yml` file contains:
 To use a custom domain:
 
 1. **Add CNAME file:**
+
    ```bash
    echo "yourdomain.com" > docs/CNAME
    ```
@@ -154,6 +165,7 @@ To use a custom domain:
 ### Build Failures
 
 **Problem**: Jekyll build fails
+
 - **Solution**: Check Ruby version (requires 3.1+)
 - **Solution**: Run `bundle update`
 - **Solution**: Check `_config.yml` for syntax errors
@@ -161,6 +173,7 @@ To use a custom domain:
 ### Site Not Updating
 
 **Problem**: Changes not appearing on site
+
 - **Solution**: Wait 1-2 minutes for GitHub to rebuild
 - **Solution**: Check Actions tab for build errors
 - **Solution**: Clear browser cache
@@ -169,6 +182,7 @@ To use a custom domain:
 ### 404 Errors
 
 **Problem**: Pages return 404
+
 - **Solution**: Check baseurl in `_config.yml`
 - **Solution**: Verify file paths are correct
 - **Solution**: Ensure markdown files have front matter
@@ -176,6 +190,7 @@ To use a custom domain:
 ### Theme Issues
 
 **Problem**: Theme not loading
+
 - **Solution**: Verify theme in `_config.yml`
 - **Solution**: Check Gemfile includes theme gem
 - **Solution**: Run `bundle install`
@@ -213,7 +228,7 @@ bundle exec jekyll serve --port 4001
 
 ### File Structure
 
-```
+```bash
 docs/
 ├── _config.yml          # Jekyll configuration
 ├── _layouts/            # HTML layouts
@@ -255,4 +270,3 @@ If you encounter issues:
 
 **Last Updated**: 2024  
 **Maintained by**: Capstone Project Team
-

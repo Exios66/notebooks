@@ -1,4 +1,4 @@
-# 🎉 GitHub Pages Deployment - Ready!
+# 🎉 GitHub Pages Deployment - Ready
 
 Your repository is now fully configured for GitHub Pages deployment.
 
@@ -101,7 +101,7 @@ Before deploying, make sure:
 
 ## 📁 File Structure
 
-```
+```bash
 capstone_v1/
 ├── .github/
 │   └── workflows/
@@ -142,6 +142,7 @@ baseurl: /my-project
 To use a custom domain:
 
 1. Add `docs/CNAME` file:
+
    ```bash
    echo "yourdomain.com" > docs/CNAME
    ```
@@ -160,7 +161,7 @@ bundle install
 bundle exec jekyll serve
 ```
 
-Visit: http://localhost:4000
+Visit: <http://localhost:4000>
 
 ## 📚 Documentation
 
@@ -216,4 +217,3 @@ Your deployed site will include:
 **Status**: ✅ **READY FOR DEPLOYMENT**
 
 **Next Action**: Follow the Quick Deployment steps above!
-
