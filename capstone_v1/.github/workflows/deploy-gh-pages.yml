@@ -56,31 +56,27 @@ jobs:
           fetch-depth: 0  # Fetch full history for change detection
       
       - name: Check for changes (scheduled runs)
-        if: github.event_name == 'schedule' && github.event.inputs.force_rebuild != 'true'
+        if: github.event_name == 'schedule'
         id: changes
         run: |
-          # Get the last successful deployment commit (stored in a file or use git log)
-          # For simplicity, we'll check if there are changes in the last commit
-          # In a more sophisticated setup, you could store the last deployed commit hash
-          LAST_COMMIT=$(git log -1 --format="%H" -- docs/ api_wrapper/ 2>/dev/null || echo "")
-          CURRENT_COMMIT=$(git rev-parse HEAD)
+          # For scheduled runs, check if there are any changes in docs or source code
+          # We'll check the last few commits to see if anything changed
+          # This is a simple heuristic - in production you might want to track last deployed commit
+          echo "🔍 Checking for changes in docs/ and api_wrapper/..."
           
-          if [ "$LAST_COMMIT" = "$CURRENT_COMMIT" ]; then
+          # Check if there are any changes in the last 5 commits
+          if git diff --quiet HEAD~5 HEAD -- docs/ api_wrapper/ 2>/dev/null; then
             echo "changed=false" >> $GITHUB_OUTPUT
-            echo "ℹ️  No changes detected. Skipping deployment."
+            echo "ℹ️  No changes detected in docs or source code in recent commits. Skipping deployment."
           else
-            # Check if files in docs/ or api_wrapper/ have changed
-            if git diff --quiet $LAST_COMMIT $CURRENT_COMMIT -- docs/ api_wrapper/ 2>/dev/null; then
-              echo "changed=false" >> $GITHUB_OUTPUT
-              echo "ℹ️  No changes in docs or source code. Skipping deployment."
-            else
-              echo "changed=true" >> $GITHUB_OUTPUT
-              echo "✅ Changes detected in docs or source code. Proceeding with deployment."
-            fi
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Changes detected in docs or source code. Proceeding with deployment."
+            echo "📋 Recent changes:"
+            git log --oneline -5 -- docs/ api_wrapper/ || true
           fi
       
       - name: Skip if no changes (scheduled runs)
-        if: github.event_name == 'schedule' && steps.changes.outputs.changed == 'false' && github.event.inputs.force_rebuild != 'true'
+        if: github.event_name == 'schedule' && steps.changes.outputs.changed == 'false'
         run: |
           echo "⏭️  Skipping deployment - no changes detected"
           exit 0

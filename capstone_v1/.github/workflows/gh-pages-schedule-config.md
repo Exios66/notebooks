@@ -5,6 +5,7 @@ This document explains how to configure the automatic GitHub Pages refresh sched
 ## Current Configuration
 
 The GitHub Pages site is automatically rebuilt and deployed:
+
 - **On every push** to `main` or `master` branch (when docs change)
 - **On manual trigger** via GitHub Actions UI
 - **On schedule**: Every 15 minutes by default
@@ -23,6 +24,7 @@ schedule:
 **Cron Expression Format**: `minute hour day month day-of-week`
 
 **Common Intervals**:
+
 - `*/15 * * * *` - Every 15 minutes (current)
 - `*/30 * * * *` - Every 30 minutes
 - `0 * * * *` - Every hour (at :00)
@@ -32,6 +34,7 @@ schedule:
 - `0 0 1 * *` - Monthly on the 1st at midnight UTC
 
 **Examples**:
+
 ```yaml
 # Every 30 minutes
 schedule:
@@ -68,6 +71,7 @@ Note: This is currently informational only. The actual schedule is controlled by
 To disable automatic scheduled deployments:
 
 1. **Comment out the schedule** in `.github/workflows/deploy-gh-pages.yml`:
+
    ```yaml
    # schedule:
    #   - cron: '*/15 * * * *'
@@ -76,6 +80,7 @@ To disable automatic scheduled deployments:
 2. Or **remove the schedule section** entirely
 
 The workflow will still run on:
+
 - Push events (when docs change)
 - Manual triggers via GitHub Actions UI
 
@@ -85,11 +90,13 @@ The workflow will still run on:
    - `docs/` directory
    - `api_wrapper/` directory (source code that might affect docs)
 
-2. **Smart Deployment**: If no changes are detected, the deployment is skipped to save resources.
+   It checks the last 5 commits to determine if changes exist.
+
+2. **Smart Deployment**: If no changes are detected in recent commits, the deployment is skipped to save resources.
 
 3. **Force Rebuild**: You can force a rebuild even without changes by:
-   - Using manual trigger with `force_rebuild: true`
-   - Or modifying the workflow to skip change detection
+   - Using manual trigger via GitHub Actions UI
+   - The workflow will always deploy on push events (when docs change)
 
 ## Monitoring
 
@@ -128,8 +135,8 @@ To monitor scheduled deployments:
 ## Timezone Note
 
 GitHub Actions schedules use **UTC timezone**. To convert to your local time:
+
 - Use a timezone converter
 - Or adjust the cron expression accordingly
 
 Example: If you want 3 AM EST (UTC-5), use `0 8 * * *` (8 AM UTC = 3 AM EST).
-
