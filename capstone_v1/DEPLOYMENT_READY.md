@@ -156,9 +156,18 @@ To use a custom domain:
 Test your site locally before deploying:
 
 ```bash
+# From the notebooks directory
+cd capstone_v1/docs
+bundle install
+bundle exec jekyll serve --livereload
+```
+
+Or if you're already in the `capstone_v1` directory:
+
+```bash
 cd docs
 bundle install
-bundle exec jekyll serve
+bundle exec jekyll serve --livereload
 ```
 
 Visit: <http://localhost:4000>
