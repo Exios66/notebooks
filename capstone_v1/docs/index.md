@@ -8,6 +8,20 @@ nav_order: 1
 
 Welcome to the comprehensive documentation for the Chatbot API Wrapper. This project provides a unified interface for interacting with chatbot models from HuggingFace and OpenAI.
 
+## 🚀 Try the Interactive Chatbot Interface
+
+<!-- markdownlint-disable MD033 -->
+<div style="background: linear-gradient(135deg, #10a37f 0%, #0d8c6f 100%); padding: 2rem; border-radius: 12px; margin: 2rem 0; text-align: center; color: white;">
+    <h2 style="color: white; margin-bottom: 1rem;">✨ HuggingChat Interface</h2>
+    <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 1.5rem; font-size: 1.1rem;">
+        Experience our redesigned chatbot interface with Omni mode, model selection, and a beautiful UI inspired by HuggingChat.
+    </p>
+    <a href="{{ '/chatbot-interface' | relative_url }}" style="display: inline-block; background: white; color: #10a37f; padding: 0.75rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        🎯 Launch Chatbot Interface →
+    </a>
+</div>
+<!-- markdownlint-enable MD033 -->
+
 ## Quick Start
 
 Get up and running in minutes:
@@ -48,7 +62,13 @@ Detailed reference for all API endpoints and methods.
 
 ### [Chatbot Interface](chatbot-interface.html)
 
-Interactive web-based chatbot interface for testing models.
+**✨ New!** Interactive web-based chatbot interface with HuggingChat-inspired design:
+
+- **Omni Mode**: Automatically selects the best model for your query
+- **Model Selection**: Choose from OpenAI and HuggingFace models
+- **Modern UI**: Clean, responsive design with dark mode support
+- **New Chat**: Start fresh conversations easily
+- **Real-time Chat**: Stream responses from multiple providers
 
 ### [Examples](examples.md)
 
@@ -95,7 +115,7 @@ capstone_v1/
 - Check the [Getting Started Guide](getting-started.md)
 - Review [API Reference](api-reference.md)
 - See [Examples](examples.md)
-- Try the [Interactive Chatbot](chatbot-interface.html)
+- **[Try the Interactive Chatbot Interface →](chatbot-interface.html)** 🚀
 
 ---
 

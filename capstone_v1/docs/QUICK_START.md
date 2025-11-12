@@ -12,11 +12,13 @@ pip install -r requirements.txt
 ## 2. Set API Key
 
 **macOS/Linux:**
+
 ```bash
 export OPENAI_API_KEY="sk-your-key-here"
 ```
 
 **Windows:**
+
 ```cmd
 set OPENAI_API_KEY=sk-your-key-here
 ```
@@ -40,9 +42,8 @@ print(response['response'])
 
 Open `docs/chatbot-interface.html` in your browser!
 
-## That's It!
+## That's It
 
 - Need more help? See [STARTUP_GUIDE.md](STARTUP_GUIDE.md)
 - Want examples? See [examples.md](examples.md)
 - Need API docs? See [api-reference.md](api-reference.md)
-

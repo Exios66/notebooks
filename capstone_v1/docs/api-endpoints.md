@@ -4,7 +4,7 @@ title: API Endpoints
 nav_order: 5
 ---
 
-# API Endpoints Reference
+# Chatbot API Endpoints Overview
 
 Complete reference for all API endpoints and their usage.
 
@@ -358,7 +358,7 @@ history = conv.get_history()
 
 ## HuggingFaceClient Endpoints
 
-### Initialization
+### HuggingFaceClient Initialization
 
 **Endpoint:** `HuggingFaceClient()`
 
@@ -378,7 +378,7 @@ history = conv.get_history()
 
 ## OpenAIClient Endpoints
 
-### Initialization
+### OpenAIClient Initialization
 
 **Endpoint:** `OpenAIClient()`
 
@@ -387,7 +387,7 @@ history = conv.get_history()
 - `api_key` (str, optional): OpenAI API key
 - `base_url` (str, optional): Custom base URL
 
-### Methods
+### Available Methods
 
 - `chat()`: Generate response
 - `stream_chat()`: Stream responses

@@ -99,7 +99,7 @@ To use a custom domain:
 
 ## File Structure
 
-```
+```bash
 docs/
 ├── _config.yml          # Jekyll configuration
 ├── _layouts/            # HTML layouts

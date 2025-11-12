@@ -41,6 +41,7 @@ pip3 --version
 ```
 
 If pip is not installed, install it with:
+
 ```bash
 python -m ensurepip --upgrade
 ```
@@ -56,12 +57,14 @@ cd capstone_v1
 ### Step 2: Create Virtual Environment (Recommended)
 
 **Windows:**
+
 ```cmd
 python -m venv venv
 venv\Scripts\activate
 ```
 
 **macOS/Linux:**
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -74,6 +77,7 @@ pip install -r requirements.txt
 ```
 
 This installs:
+
 - `requests` - HTTP library
 - `openai` - OpenAI Python SDK
 - `transformers` - HuggingFace transformers
@@ -95,18 +99,21 @@ If no errors appear, installation is complete.
 ### Option 1: Environment Variables (Recommended)
 
 #### Windows (Command Prompt)
+
 ```cmd
 set OPENAI_API_KEY=sk-your-key-here
 set HUGGINGFACE_API_KEY=hf_your-key-here
 ```
 
 #### Windows (PowerShell)
+
 ```powershell
 $env:OPENAI_API_KEY="sk-your-key-here"
 $env:HUGGINGFACE_API_KEY="hf_your-key-here"
 ```
 
 #### macOS/Linux
+
 ```bash
 export OPENAI_API_KEY="sk-your-key-here"
 export HUGGINGFACE_API_KEY="hf_your-key-here"
@@ -115,12 +122,14 @@ export HUGGINGFACE_API_KEY="hf_your-key-here"
 **Persistent Setup (macOS/Linux):**
 
 Add to `~/.bashrc` or `~/.zshrc`:
+
 ```bash
 export OPENAI_API_KEY="sk-your-key-here"
 export HUGGINGFACE_API_KEY="hf_your-key-here"
 ```
 
 Then reload:
+
 ```bash
 source ~/.bashrc  # or source ~/.zshrc
 ```
@@ -191,6 +200,7 @@ except Exception as e:
 ```
 
 Run it:
+
 ```bash
 python test_setup.py
 ```
@@ -251,10 +261,16 @@ print(response2)
 
 ### 3. Try the Web Interface
 
-1. Open `docs/chatbot-interface.html` in a web browser
+1. Open `docs/chatbot-interface.html` in a web browser (or visit it on GitHub Pages)
 2. Click "Settings" and enter your API key
-3. Select a model
+3. Try **Omni mode** (automatically selects the best model) or choose a specific model
 4. Start chatting!
+
+**✨ New Features:**
+
+- **Omni Mode**: Automatically picks the best AI model for your query
+- **Model Selection**: Choose from OpenAI and HuggingFace models
+- **Modern UI**: Clean, responsive design with dark mode support
 
 ### 4. Run Examples
 
@@ -272,6 +288,7 @@ python examples.py
 **Error:** `ModuleNotFoundError: No module named 'api_wrapper'`
 
 **Solution:**
+
 ```bash
 # Make sure you're in the capstone_v1 directory
 cd capstone_v1
@@ -288,6 +305,7 @@ pip install -r requirements.txt
 **Error:** `ValueError: OpenAI API key is required`
 
 **Solution:**
+
 - Verify API key is set: `echo $OPENAI_API_KEY` (Linux/macOS) or `echo %OPENAI_API_KEY%` (Windows)
 - Check key format (OpenAI starts with `sk-`, HuggingFace starts with `hf_`)
 - Ensure key is valid and has proper permissions
@@ -297,6 +315,7 @@ pip install -r requirements.txt
 **Error:** `ConnectionError` or `TimeoutError`
 
 **Solution:**
+
 - Check internet connection
 - Verify firewall settings
 - Try again (may be temporary API issue)
@@ -307,6 +326,7 @@ pip install -r requirements.txt
 **Error:** `CUDA out of memory` or model loading fails
 
 **Solution:**
+
 - Use CPU instead: `hf_device="cpu"`
 - Use smaller models
 - Use Inference API instead: `use_local_hf=False`
@@ -317,6 +337,7 @@ pip install -r requirements.txt
 **Error:** `ERROR: Could not build wheels`
 
 **Solution:**
+
 ```bash
 # Update pip
 pip install --upgrade pip
@@ -340,10 +361,10 @@ pip install -r requirements.txt
 
 ## Next Steps
 
+- **[🚀 Try the Interactive Chatbot Interface →](chatbot-interface.html)** - Experience the new HuggingChat-inspired UI with Omni mode
 - Read the [Getting Started Guide](getting-started.md)
 - Explore the [API Reference](api-reference.md)
 - Try [Code Examples](examples.md)
-- Use the [Interactive Chatbot](chatbot-interface.html)
 
 ## Additional Resources
 
@@ -354,4 +375,3 @@ pip install -r requirements.txt
 ---
 
 **Need more help?** Review the full documentation or check the troubleshooting section above.
-

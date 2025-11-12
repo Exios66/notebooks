@@ -223,6 +223,7 @@ df -h .
 ```
 
 **Additional cleanup options:**
+
 - Empty Trash
 - Remove old downloads
 - Use macOS Storage Management (Apple menu > About This Mac > Storage)

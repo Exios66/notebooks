@@ -33,6 +33,7 @@ pip install -r requirements.txt
 ```
 
 This will install:
+
 - `requests` - For HTTP requests
 - `openai` - OpenAI Python SDK
 - `transformers` - For local HuggingFace models
@@ -46,18 +47,21 @@ You can set API keys in two ways:
 #### Option A: Environment Variables (Recommended)
 
 **Linux/macOS:**
+
 ```bash
 export OPENAI_API_KEY="your-openai-api-key-here"
 export HUGGINGFACE_API_KEY="your-huggingface-api-key-here"
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 $env:OPENAI_API_KEY="your-openai-api-key-here"
 $env:HUGGINGFACE_API_KEY="your-huggingface-api-key-here"
 ```
 
 **Windows (Command Prompt):**
+
 ```cmd
 set OPENAI_API_KEY=your-openai-api-key-here
 set HUGGINGFACE_API_KEY=your-huggingface-api-key-here
@@ -215,20 +219,24 @@ HUGGINGFACE_CHATBOT_MODELS = {
 ### Common Issues
 
 **1. Import Errors**
+
 - Ensure all dependencies are installed: `pip install -r requirements.txt`
 - Check Python version: `python --version` (should be 3.8+)
 
 **2. API Key Errors**
+
 - Verify API keys are set correctly
 - Check environment variables: `echo $OPENAI_API_KEY`
 - Ensure keys are valid and have proper permissions
 
 **3. Model Loading Errors (Local)**
+
 - Ensure you have sufficient RAM/VRAM
 - Check if model exists on HuggingFace
 - Verify transformers and torch are installed correctly
 
 **4. Network Errors**
+
 - Check internet connection
 - Verify API endpoints are accessible
 - Check firewall settings
@@ -241,7 +249,10 @@ HUGGINGFACE_CHATBOT_MODELS = {
 
 ## Next Steps
 
+- **[🚀 Try the Interactive Chatbot Interface →](chatbot-interface.html)** - Experience the new HuggingChat-inspired UI with Omni mode
 - Read the [API Reference](api-reference.md) for detailed documentation
-- Try the [Interactive Chatbot Interface](chatbot-interface.html)
 - Explore [Code Examples](examples.md)
 
+<div style="background: #f0f9ff; border-left: 4px solid #10a37f; padding: 1rem; margin: 1.5rem 0; border-radius: 4px;">
+    <strong>💡 Pro Tip:</strong> The chatbot interface now features <strong>Omni mode</strong> which automatically selects the best model for your query. No need to manually choose between models!
+</div>
