@@ -223,13 +223,13 @@ HUGGINGFACE_CHATBOT_MODELS = {
 - Ensure all dependencies are installed: `pip install -r requirements.txt`
 - Check Python version: `python --version` (should be 3.8+)
 
-**2. API Key Errors**
+### 2. API Key Errors
 
 - Verify API keys are set correctly
 - Check environment variables: `echo $OPENAI_API_KEY`
 - Ensure keys are valid and have proper permissions
 
-**3. Model Loading Errors (Local)**
+#### 3. Model Loading Errors (Local)
 
 - Ensure you have sufficient RAM/VRAM
 - Check if model exists on HuggingFace

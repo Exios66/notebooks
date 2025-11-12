@@ -3,7 +3,7 @@ Pydantic-based configuration management with validation
 """
 
 import os
-from typing import Optional, Dict, Any
+from typing import Optional
 from enum import Enum
 
 try:
@@ -11,7 +11,6 @@ try:
     PYDANTIC_AVAILABLE = True
 except ImportError:
     PYDANTIC_AVAILABLE = False
-    # Fallback to basic settings if pydantic not available
     BaseSettings = object
     Field = None
     validator = None
@@ -88,10 +87,6 @@ if PYDANTIC_AVAILABLE:
             env_file = ".env"
             env_file_encoding = "utf-8"
             case_sensitive = False
-    
-    def get_settings() -> Settings:
-        """Get application settings"""
-        return Settings()
 else:
     # Fallback implementation without pydantic
     class Settings:
@@ -122,10 +117,6 @@ else:
                     "pydantic not available. Using basic settings without validation. "
                     "Install pydantic for full validation support."
                 )
-    
-    def get_settings() -> Settings:
-        """Get application settings"""
-        return Settings()
 
 
 # Global settings instance
@@ -138,4 +129,3 @@ def get_settings() -> Settings:
     if _settings is None:
         _settings = Settings()
     return _settings
-
