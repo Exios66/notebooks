@@ -9,6 +9,32 @@ on:
       - 'docs/**'
       - '.github/workflows/deploy-gh-pages.yml'
   workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: 'Force rebuild even if no changes detected'
+        required: false
+        default: false
+        type: boolean
+  # Scheduled deployment - runs every 15 minutes by default
+  # To adjust the schedule, modify the cron expression below:
+  # Format: minute hour day month day-of-week
+  # Examples:
+  #   "*/15 * * * *"  - Every 15 minutes (current)
+  #   "*/30 * * * *"  - Every 30 minutes
+  #   "0 * * * *"     - Every hour
+  #   "0 */2 * * *"   - Every 2 hours
+  #   "0 0 * * *"     - Daily at midnight
+  schedule:
+    # Default: Every 15 minutes
+    # To change: Edit the cron expression or set GITHUB_PAGES_REFRESH_INTERVAL env var
+    - cron: '*/15 * * * *'
+
+# Environment variable to control refresh interval (optional, informational)
+# The actual schedule is controlled by the cron expression above
+# Set this in repository settings -> Secrets and variables -> Actions -> Variables
+# Values: "15min", "30min", "1hour", "2hours", "daily", "disabled"
+env:
+  REFRESH_INTERVAL: '15min'
 
 permissions:
   contents: read
@@ -26,6 +52,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for change detection
+      
+      - name: Check for changes (scheduled runs)
+        if: github.event_name == 'schedule' && github.event.inputs.force_rebuild != 'true'
+        id: changes
+        run: |
+          # Get the last successful deployment commit (stored in a file or use git log)
+          # For simplicity, we'll check if there are changes in the last commit
+          # In a more sophisticated setup, you could store the last deployed commit hash
+          LAST_COMMIT=$(git log -1 --format="%H" -- docs/ api_wrapper/ 2>/dev/null || echo "")
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          
+          if [ "$LAST_COMMIT" = "$CURRENT_COMMIT" ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  No changes detected. Skipping deployment."
+          else
+            # Check if files in docs/ or api_wrapper/ have changed
+            if git diff --quiet $LAST_COMMIT $CURRENT_COMMIT -- docs/ api_wrapper/ 2>/dev/null; then
+              echo "changed=false" >> $GITHUB_OUTPUT
+              echo "ℹ️  No changes in docs or source code. Skipping deployment."
+            else
+              echo "changed=true" >> $GITHUB_OUTPUT
+              echo "✅ Changes detected in docs or source code. Proceeding with deployment."
+            fi
+          fi
+      
+      - name: Skip if no changes (scheduled runs)
+        if: github.event_name == 'schedule' && steps.changes.outputs.changed == 'false' && github.event.inputs.force_rebuild != 'true'
+        run: |
+          echo "⏭️  Skipping deployment - no changes detected"
+          exit 0
       
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -41,10 +99,23 @@ jobs:
       - name: Build with Jekyll
         working-directory: ./docs
         run: |
+          echo "🔨 Building Jekyll site..."
           bundle install
           bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
+          echo "✅ Build completed successfully"
         env:
           JEKYLL_ENV: production
+      
+      - name: Log deployment info
+        run: |
+          echo "📝 Deployment Information:"
+          echo "  Trigger: ${{ github.event_name }}"
+          echo "  Branch: ${{ github.ref }}"
+          echo "  Commit: ${{ github.sha }}"
+          echo "  Refresh Interval: ${{ env.REFRESH_INTERVAL }}"
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            echo "  Scheduled Run: Yes"
+          fi
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

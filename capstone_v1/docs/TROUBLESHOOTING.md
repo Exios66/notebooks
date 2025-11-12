@@ -154,6 +154,7 @@ Common issues and solutions for the Chatbot API Wrapper.
 ### Issue: Health check failing
 
 **Symptoms:**
+
 - Health endpoint returns 503
 - High error rates reported
 - Provider availability low
@@ -161,6 +162,7 @@ Common issues and solutions for the Chatbot API Wrapper.
 **Solutions:**
 
 1. **Check Metrics**:
+
    ```python
    from api_wrapper.metrics import get_metrics_collector
    metrics = get_metrics_collector()
@@ -169,6 +171,7 @@ Common issues and solutions for the Chatbot API Wrapper.
    ```
 
 2. **Check Health Status**:
+
    ```python
    from api_wrapper.health import get_health_checker
    checker = get_health_checker()
@@ -177,6 +180,7 @@ Common issues and solutions for the Chatbot API Wrapper.
    ```
 
 3. **Check Dependencies**:
+
    ```python
    deps = checker.check_dependencies()
    if not deps["all_required_available"]:
@@ -190,6 +194,7 @@ Common issues and solutions for the Chatbot API Wrapper.
 1. Ensure metrics collector is initialized
 2. Check if requests are being tracked
 3. Verify metrics context manager is used:
+
    ```python
    from api_wrapper.metrics import MetricsContext, get_metrics_collector
    
@@ -204,6 +209,7 @@ Common issues and solutions for the Chatbot API Wrapper.
 **Solutions:**
 
 1. Verify export format:
+
    ```python
    prometheus_output = collector.export_prometheus()
    print(prometheus_output)
@@ -308,6 +314,7 @@ Common issues and solutions for the Chatbot API Wrapper.
 **Solutions:**
 
 1. Monitor token metrics:
+
    ```python
    stats = metrics.get_stats()
    print(stats["total_tokens"])
@@ -350,18 +357,21 @@ Common issues and solutions for the Chatbot API Wrapper.
 ## Debugging Tips
 
 1. **Enable Debug Logging**:
+
    ```python
    import logging
    logging.basicConfig(level=logging.DEBUG)
    ```
 
 2. **Use Metrics Context**:
+
    ```python
    with MetricsContext(collector, provider, model) as ctx:
        # Track your request
    ```
 
 3. **Check Health Status**:
+
    ```python
    health = checker.check_health()
    if health["status"] != "healthy":
@@ -369,6 +379,7 @@ Common issues and solutions for the Chatbot API Wrapper.
    ```
 
 4. **Export Metrics**:
+
    ```python
    # Prometheus format
    print(collector.export_prometheus())
@@ -378,6 +389,7 @@ Common issues and solutions for the Chatbot API Wrapper.
    ```
 
 5. **Monitor in Real-time**:
+
    ```python
    import time
    while True:
@@ -386,4 +398,3 @@ Common issues and solutions for the Chatbot API Wrapper.
        print(f"Errors: {sum(stats['error_counts'].values())}")
        time.sleep(5)
    ```
-

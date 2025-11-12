@@ -9,6 +9,7 @@ This document summarizes the implementation of metrics collection, health checks
 **Location**: `api_wrapper/metrics.py`
 
 **Features**:
+
 - Prometheus export format (`export_prometheus()`)
 - JSON export format (`export_json()`)
 - StatsD export format (`export_statsd()`)
@@ -17,6 +18,7 @@ This document summarizes the implementation of metrics collection, health checks
 - Provider availability monitoring
 
 **Usage**:
+
 ```python
 from api_wrapper.metrics import get_metrics_collector
 
@@ -34,6 +36,7 @@ statsd_metrics = collector.export_statsd()
 **Location**: `api_wrapper/health.py`
 
 **Features**:
+
 - Health, readiness, and liveness checks
 - Dependency availability checking
 - HTTP response generation for endpoints
@@ -41,6 +44,7 @@ statsd_metrics = collector.export_statsd()
 - Automatic dependency detection
 
 **Usage**:
+
 ```python
 from api_wrapper.health import get_health_checker
 
@@ -67,6 +71,7 @@ status, code = checker.get_http_response('health')
 **Location**: `pyproject.toml`
 
 **Enhancements**:
+
 - Complete PyPI metadata
 - Build system configuration
 - Tool configurations (Black, Flake8, MyPy)
@@ -80,6 +85,7 @@ status, code = checker.get_http_response('health')
 **Location**: `.github/workflows/`
 
 **Workflows Created**:
+
 1. **ci.yml**: Continuous Integration
    - Multi-OS testing (Ubuntu, macOS, Windows)
    - Multi-Python version testing (3.8-3.11)
@@ -96,6 +102,7 @@ status, code = checker.get_http_response('health')
 ### 5. Enhanced Documentation ✅
 
 **Production Deployment Guide** (`docs/PRODUCTION.md`):
+
 - Docker deployment with health checks
 - Docker Compose with Prometheus/Grafana
 - Kubernetes deployment manifests
@@ -104,6 +111,7 @@ status, code = checker.get_http_response('health')
 - Scaling considerations
 
 **Security Documentation** (`docs/SECURITY.md`):
+
 - Vulnerability scanning tools
 - CI/CD security integration
 - Compliance (GDPR, SOC 2, HIPAA)
@@ -112,6 +120,7 @@ status, code = checker.get_http_response('health')
 - Security tools and integration
 
 **Troubleshooting Guide** (`docs/TROUBLESHOOTING.md`):
+
 - Metrics and health check issues
 - CI/CD troubleshooting
 - Deployment issues
@@ -218,11 +227,13 @@ prometheus_output = collector.export_prometheus()
 ## Testing
 
 Run the test suite:
+
 ```bash
 pytest tests/ -v --cov=api_wrapper
 ```
 
 Run linting:
+
 ```bash
 black --check api_wrapper/ tests/
 flake8 api_wrapper/ tests/
@@ -230,6 +241,7 @@ mypy api_wrapper/
 ```
 
 Run security scans:
+
 ```bash
 safety check
 bandit -r api_wrapper/
@@ -238,12 +250,14 @@ bandit -r api_wrapper/
 ## Deployment
 
 ### Docker
+
 ```bash
 docker build -t chatbot-api-wrapper .
 docker run -p 8080:8080 chatbot-api-wrapper
 ```
 
 ### Kubernetes
+
 ```bash
 kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml
@@ -252,7 +266,7 @@ kubectl apply -f k8s/service.yaml
 ## Support
 
 For issues or questions:
+
 - Check documentation in `docs/`
 - Review troubleshooting guide
 - Open an issue on GitHub
-
