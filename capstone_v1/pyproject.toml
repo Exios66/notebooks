@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chatbot-api-wrapper"
+version = "1.0.0"
+description = "A unified Python wrapper for interacting with chatbot models from HuggingFace and OpenAI"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Capstone Project Team"}
+]
+keywords = ["chatbot", "openai", "huggingface", "llm", "ai", "api"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "requests>=2.31.0",
+    "openai>=1.0.0",
+    "transformers>=4.30.0",
+    "torch>=2.0.0",
+    "accelerate>=0.20.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+production = [
+    "pydantic>=2.0.0",
+    "tenacity>=8.0.0",
+    "cachetools>=5.0.0",
+    "structlog>=23.0.0",
+    "httpx>=0.24.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/notebooks"
+Documentation = "https://yourusername.github.io/notebooks"
+Repository = "https://github.com/yourusername/notebooks"
+Issues = "https://github.com/yourusername/notebooks/issues"
+
+[tool.setuptools]
+packages = ["api_wrapper"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers --tb=short"
+
+[tool.coverage.run]
+source = ["api_wrapper"]
+omit = ["*/tests/*", "*/test_*.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
