@@ -13,12 +13,14 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/chatbot-api-wrapper
+    # Environment is optional - create it in repo settings if you want deployment protection
+    # environment:
+    #   name: pypi
+    #   url: https://pypi.org/p/chatbot-api-wrapper
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -45,12 +47,26 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
       run: |
+        if [ -z "$TWINE_PASSWORD" ]; then
+          echo "⚠️  TEST_PYPI_API_TOKEN secret not set. Skipping Test PyPI upload."
+          echo "💡 To publish to Test PyPI, add TEST_PYPI_API_TOKEN to repository secrets."
+          exit 0
+        fi
+        echo "📦 Publishing to Test PyPI..."
         twine upload --repository testpypi dist/*
+        echo "✅ Published to Test PyPI successfully"
     
     - name: Publish to PyPI
+      if: github.event_name == 'release'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
       run: |
+        if [ -z "$TWINE_PASSWORD" ]; then
+          echo "❌ Error: PYPI_API_TOKEN secret is required for production releases"
+          exit 1
+        fi
+        echo "📦 Publishing to PyPI..."
         twine upload dist/*
+        echo "✅ Published to PyPI successfully"
 
