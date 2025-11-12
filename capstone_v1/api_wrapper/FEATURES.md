@@ -3,6 +3,7 @@
 ## Overview
 
 This document describes the comprehensive additions to the Chatbot API Wrapper, including:
+
 - Expanded examples library
 - Assistant starter prompts
 - Dataset loaders for fine-tuning
@@ -12,6 +13,7 @@ This document describes the comprehensive additions to the Chatbot API Wrapper, 
 The examples file has been expanded from 7 to 21+ examples covering:
 
 ### Basic Examples
+
 - Basic usage
 - Multi-turn conversations
 - Streaming responses
@@ -19,6 +21,7 @@ The examples file has been expanded from 7 to 21+ examples covering:
 - Model listing
 
 ### Advanced Examples
+
 - **Starter Prompts**: Using domain-specific system prompts
 - **Domain-Specific**: Examples for different domains (data science, math, etc.)
 - **Temperature Variations**: Comparing different temperature settings
@@ -32,6 +35,7 @@ The examples file has been expanded from 7 to 21+ examples covering:
 - **Advanced Message Formatting**: Complex conversation structures
 
 ### Dataset Examples
+
 - **Dataset Loading**: Loading datasets from various sources
 - **Dataset Conversion**: Converting datasets to chat format for fine-tuning
 
@@ -40,11 +44,13 @@ The examples file has been expanded from 7 to 21+ examples covering:
 A comprehensive collection of system prompts for various domains:
 
 ### General Purpose
+
 - `general`: General helpful assistant
 - `friendly`: Friendly and approachable
 - `professional`: Professional and formal
 
 ### Technical & Programming
+
 - `coding`: Expert programming assistant
 - `python`: Python programming expert
 - `data_science`: Data science assistant
@@ -56,32 +62,38 @@ A comprehensive collection of system prompts for various domains:
 - `backend`: Backend developer
 
 ### Educational
+
 - `tutor`: Patient tutor
 - `math`: Mathematics tutor
 - `science`: Science tutor
 - `language`: Language learning assistant
 
 ### Creative & Writing
+
 - `creative_writer`: Creative writing assistant
 - `content_writer`: Content writing assistant
 - `technical_writer`: Technical writing assistant
 
 ### Business & Professional
+
 - `business`: Business assistant
 - `project_manager`: Project management assistant
 - `resume`: Resume and career assistant
 
 ### Health & Wellness
+
 - `health`: Health information assistant
 - `fitness`: Fitness and nutrition assistant
 
 ### Research & Analysis
+
 - `research`: Research assistant
 - `data_analyst`: Data analyst assistant
 - `academic`: Academic writing assistant
 - `literature`: Literature review assistant
 
 ### Specialized
+
 - `customer_service`: Customer service representative
 - `translator`: Translation assistant
 - `legal`: Legal information assistant
@@ -110,6 +122,7 @@ A unified interface for loading datasets from multiple sources for fine-tuning:
 ### Supported Sources
 
 #### HuggingFace Datasets
+
 - **Instruction Following**: Alpaca, Dolly, OpenOrca, UltraChat, ShareGPT
 - **Question Answering**: SQuAD, Natural Questions, MS MARCO
 - **Conversational**: PersonaChat, Wizard of Wikipedia, Empathetic Dialogues
@@ -122,15 +135,19 @@ A unified interface for loading datasets from multiple sources for fine-tuning:
 - **Safety**: Anthropic HH, OpenAssistant, BeaverTails
 
 #### Seaborn Datasets
+
 - anscombe, attention, brain_networks, car_crashes, diamonds, dots, exercise, flights, fmri, geyser, iris, mpg, penguins, planets, tips, titanic
 
 #### Scikit-learn Datasets
+
 - iris, wine, breast_cancer, diabetes
 
 #### OpenML Datasets
+
 - adult, bank_marketing, credit_g, diabetes, heart_disease, mushroom, nursery, tic_tac_toe, vote, zoo
 
 #### GitHub & URLs
+
 - Load datasets directly from GitHub repositories
 - Load from any URL (CSV, JSON, TSV, Parquet)
 
@@ -183,6 +200,7 @@ pip install -r requirements.txt
 ```
 
 Key new dependencies:
+
 - `datasets>=2.14.0` - HuggingFace datasets
 - `huggingface-hub>=0.16.0` - HuggingFace Hub access
 - `pandas>=2.0.0` - Data manipulation
@@ -250,4 +268,3 @@ example_starter_prompts()
 - See `examples.py` for comprehensive usage examples
 - See `starter_prompts.py` for all available prompts
 - See `dataset_loaders.py` for dataset loading documentation
-

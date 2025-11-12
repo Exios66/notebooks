@@ -410,4 +410,3 @@ response = wrapper.chat(
 
 print(response['response'])
 ```
-

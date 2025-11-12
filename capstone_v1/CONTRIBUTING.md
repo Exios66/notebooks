@@ -32,6 +32,7 @@ pytest tests/ --cov=api_wrapper --cov-report=html
 ## Code Style
 
 We use:
+
 - **Black** for code formatting
 - **Flake8** for linting
 - **MyPy** for type checking

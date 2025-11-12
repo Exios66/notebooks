@@ -289,3 +289,307 @@ Set up alerts for:
 - Have fallback providers configured
 - Test disaster recovery procedures
 
+## Docker Deployment
+
+### Dockerfile
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt pyproject.toml ./
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -e .
+
+# Copy application code
+COPY . .
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV LOG_LEVEL=INFO
+ENV CACHE_ENABLED=true
+
+# Expose health check port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "from api_wrapper.health import get_health_checker; import sys; h = get_health_checker(); status, code = h.get_http_response('liveness'); sys.exit(0 if code == 200 else 1)"
+
+# Run application
+CMD ["python", "-m", "api_wrapper"]
+```
+
+### Docker Compose
+
+```yaml
+version: '3.8'
+
+services:
+  chatbot-api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - LOG_LEVEL=INFO
+      - CACHE_ENABLED=true
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "from api_wrapper.health import get_health_checker; h = get_health_checker(); status, code = h.get_http_response('liveness'); exit(0 if code == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  prometheus-data:
+  grafana-data:
+```
+
+## Kubernetes Deployment
+
+### Deployment Manifest
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatbot-api
+  labels:
+    app: chatbot-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: chatbot-api
+  template:
+    metadata:
+      labels:
+        app: chatbot-api
+    spec:
+      containers:
+      - name: chatbot-api
+        image: your-registry/chatbot-api-wrapper:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: chatbot-secrets
+              key: openai-api-key
+        - name: HUGGINGFACE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: chatbot-secrets
+              key: huggingface-api-key
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chatbot-api-service
+spec:
+  selector:
+    app: chatbot-api
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: LoadBalancer
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: chatbot-api-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: chatbot-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+```
+
+## Monitoring Integration
+
+### Prometheus Configuration
+
+```yaml
+# prometheus.yml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'chatbot-api'
+    static_configs:
+      - targets: ['chatbot-api:8080']
+    metrics_path: '/metrics'
+```
+
+### Metrics Endpoint Example
+
+```python
+from flask import Flask, Response
+from api_wrapper.metrics import get_metrics_collector
+
+app = Flask(__name__)
+
+@app.route('/metrics')
+def metrics():
+    collector = get_metrics_collector()
+    prometheus_metrics = collector.export_prometheus()
+    return Response(prometheus_metrics, mimetype='text/plain')
+
+@app.route('/health')
+def health():
+    from api_wrapper.health import get_health_checker
+    checker = get_health_checker()
+    status, code = checker.get_http_response('health')
+    return status, code
+```
+
+### Grafana Dashboard
+
+Key metrics to monitor:
+- Request rate (requests/second)
+- Error rate (errors/second)
+- Response time (p50, p95, p99)
+- Token usage
+- Provider availability
+- Cache hit rate
+
+## Logging and Observability
+
+### Structured Logging
+
+```python
+from api_wrapper.logger import setup_logger
+import structlog
+
+logger = setup_logger(
+    name="chatbot_api",
+    level="INFO",
+    json_format=True,
+    sanitize=True,
+)
+
+# Use structured logging
+logger.info(
+    "request_completed",
+    extra={
+        "model": "gpt-3.5-turbo",
+        "provider": "openai",
+        "duration_ms": 1234,
+        "tokens": 500,
+    }
+)
+```
+
+### Log Aggregation
+
+For production, integrate with:
+- **ELK Stack** (Elasticsearch, Logstash, Kibana)
+- **Loki** (Grafana Loki)
+- **Datadog**
+- **New Relic**
+- **Splunk**
+
+## Performance Tuning
+
+### Connection Pooling
+
+```python
+from api_wrapper.pool import get_connection_pool
+
+pool = get_connection_pool()
+pool.configure(maxsize=10, timeout=30)
+```
+
+### Caching Strategy
+
+```python
+from api_wrapper.cache import get_cache
+
+cache = get_cache()
+cache.enabled = True
+cache.ttl = 3600  # 1 hour
+cache.maxsize = 10000  # Cache up to 10k responses
+```
+
+### Rate Limiting
+
+```python
+from api_wrapper.rate_limiter import get_rate_limiter
+
+limiter = get_rate_limiter()
+limiter.configure(
+    provider="openai",
+    rate=50.0,  # 50 requests/second
+    burst=100.0,
+)
+```
+
+## Scaling Considerations
+
+1. **Horizontal Scaling**: Deploy multiple instances behind a load balancer
+2. **Vertical Scaling**: Increase resources for single instance
+3. **Auto-scaling**: Use Kubernetes HPA or cloud auto-scaling
+4. **Caching**: Reduce API calls with aggressive caching
+5. **Connection Pooling**: Reuse connections efficiently
+6. **Async Processing**: Use async clients for concurrent requests

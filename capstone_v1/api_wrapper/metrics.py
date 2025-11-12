@@ -1,13 +1,15 @@
 """
 Metrics collection for monitoring API usage and performance
+Supports Prometheus and StatsD export formats
 """
 
 import time
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 import threading
+import json
 
 from .logger import get_logger
 
@@ -133,6 +135,112 @@ class MetricsCollector:
             self.total_duration.clear()
             self.provider_availability.clear()
             self.logger.info("Metrics reset")
+    
+    def export_prometheus(self) -> str:
+        """
+        Export metrics in Prometheus format
+        
+        Returns:
+            Prometheus-formatted metrics string
+        """
+        with self.lock:
+            stats = self.get_stats()
+            lines = []
+            
+            # Request counts
+            for key, count in stats.get("request_counts", {}).items():
+                provider, model = key.split(":", 1) if ":" in key else (key, "unknown")
+                lines.append(
+                    f'api_wrapper_requests_total{{provider="{provider}",model="{model}"}} {count}'
+                )
+            
+            # Error counts
+            for key, count in stats.get("error_counts", {}).items():
+                if ":" in key:
+                    parts = key.split(":")
+                    if len(parts) == 2:
+                        provider, model = parts
+                        error_type = "unknown"
+                    else:
+                        provider, model, error_type = parts
+                    lines.append(
+                        f'api_wrapper_errors_total{{provider="{provider}",model="{model}",error_type="{error_type}"}} {count}'
+                    )
+            
+            # Token usage
+            for key, tokens in stats.get("total_tokens", {}).items():
+                provider, model = key.split(":", 1) if ":" in key else (key, "unknown")
+                lines.append(
+                    f'api_wrapper_tokens_total{{provider="{provider}",model="{model}"}} {tokens}'
+                )
+            
+            # Average durations
+            for key, duration in stats.get("average_durations", {}).items():
+                provider, model = key.split(":", 1) if ":" in key else (key, "unknown")
+                lines.append(
+                    f'api_wrapper_request_duration_seconds{{provider="{provider}",model="{model}"}} {duration:.4f}'
+                )
+            
+            # Provider availability
+            for provider, availability in stats.get("provider_availability", {}).items():
+                avail_pct = availability.get("availability_percent", 0.0)
+                lines.append(
+                    f'api_wrapper_provider_availability{{provider="{provider}"}} {avail_pct:.2f}'
+                )
+            
+            return "\n".join(lines) + "\n"
+    
+    def export_json(self) -> str:
+        """
+        Export metrics as JSON
+        
+        Returns:
+            JSON-formatted metrics string
+        """
+        with self.lock:
+            stats = self.get_stats()
+            return json.dumps(stats, indent=2)
+    
+    def export_statsd(self) -> List[str]:
+        """
+        Export metrics in StatsD format
+        
+        Returns:
+            List of StatsD metric strings
+        """
+        with self.lock:
+            stats = self.get_stats()
+            lines = []
+            timestamp = int(time.time())
+            
+            # Request counts
+            for key, count in stats.get("request_counts", {}).items():
+                provider, model = key.split(":", 1) if ":" in key else (key, "unknown")
+                lines.append(
+                    f'api_wrapper.requests.{provider}.{model}:{count}|c|#{timestamp}'
+                )
+            
+            # Error counts
+            for key, count in stats.get("error_counts", {}).items():
+                if ":" in key:
+                    parts = key.split(":")
+                    if len(parts) == 2:
+                        provider, model = parts
+                        error_type = "unknown"
+                    else:
+                        provider, model, error_type = parts
+                    lines.append(
+                        f'api_wrapper.errors.{provider}.{model}.{error_type}:{count}|c|#{timestamp}'
+                    )
+            
+            # Average durations
+            for key, duration in stats.get("average_durations", {}).items():
+                provider, model = key.split(":", 1) if ":" in key else (key, "unknown")
+                lines.append(
+                    f'api_wrapper.duration.{provider}.{model}:{duration:.4f}|ms|#{timestamp}'
+                )
+            
+            return lines
 
 
 # Global metrics collector

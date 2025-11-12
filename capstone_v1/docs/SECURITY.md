@@ -176,9 +176,167 @@ If you discover a security vulnerability:
 3. Include details and steps to reproduce
 4. Allow time for fix before disclosure
 
+## Vulnerability Scanning
+
+### Automated Scanning
+
+Use tools to scan for vulnerabilities:
+
+```bash
+# Safety - Check for known vulnerabilities
+pip install safety
+safety check
+
+# Bandit - Security linter
+pip install bandit
+bandit -r api_wrapper/
+
+# Snyk
+snyk test
+
+# OWASP Dependency Check
+dependency-check --scan api_wrapper/
+```
+
+### CI/CD Integration
+
+Add security scanning to your CI/CD pipeline:
+
+```yaml
+# .github/workflows/security.yml
+- name: Run Safety check
+  run: safety check
+
+- name: Run Bandit
+  run: bandit -r api_wrapper/ -ll
+
+- name: Run Snyk
+  run: snyk test --severity-threshold=high
+```
+
+### Dependency Updates
+
+Regularly update dependencies:
+
+```bash
+# Check for outdated packages
+pip list --outdated
+
+# Update with pip-tools
+pip-compile --upgrade requirements.txt
+```
+
+## Compliance
+
+### GDPR Compliance
+
+- **Data Minimization**: Only collect necessary data
+- **Right to Erasure**: Implement data deletion
+- **Data Portability**: Export user data
+- **Privacy by Design**: Default privacy settings
+
+### SOC 2 Compliance
+
+- **Access Controls**: Implement authentication/authorization
+- **Audit Logging**: Log all access and changes
+- **Encryption**: Encrypt data at rest and in transit
+- **Monitoring**: Continuous security monitoring
+
+### HIPAA Compliance (if applicable)
+
+- **Encryption**: Encrypt PHI data
+- **Access Controls**: Strict access management
+- **Audit Logs**: Comprehensive logging
+- **Business Associate Agreements**: With third-party providers
+
+## Security Incident Response
+
+### Incident Response Plan
+
+1. **Detection**: Monitor for security events
+2. **Containment**: Isolate affected systems
+3. **Eradication**: Remove threats
+4. **Recovery**: Restore normal operations
+5. **Lessons Learned**: Post-incident review
+
+### Security Monitoring
+
+Monitor for:
+- Unusual API usage patterns
+- Authentication failures
+- Rate limit violations
+- Unauthorized access attempts
+- Data exfiltration attempts
+
+### Security Alerts
+
+Set up alerts for:
+- Multiple failed authentication attempts
+- Unusual token usage
+- API key exposure
+- High error rates
+- Suspicious network activity
+
+## Secure Development Practices
+
+### Code Review
+
+- Review all code changes
+- Check for security vulnerabilities
+- Verify input validation
+- Ensure proper error handling
+
+### Security Testing
+
+- **Static Analysis**: Use tools like Bandit, SonarQube
+- **Dynamic Analysis**: Penetration testing
+- **Dependency Scanning**: Check for vulnerable dependencies
+- **Fuzzing**: Test with malformed inputs
+
+### Threat Modeling
+
+Identify and mitigate threats:
+1. **Spoofing**: Authentication mechanisms
+2. **Tampering**: Input validation, integrity checks
+3. **Repudiation**: Audit logging
+4. **Information Disclosure**: Encryption, access controls
+5. **Denial of Service**: Rate limiting, resource limits
+6. **Elevation of Privilege**: Authorization checks
+
+## Security Tools
+
+### Recommended Tools
+
+- **Safety**: Dependency vulnerability scanning
+- **Bandit**: Security linter for Python
+- **Snyk**: Vulnerability management
+- **OWASP ZAP**: Security testing
+- **TruffleHog**: Secret scanning
+- **GitGuardian**: Secret detection in Git
+
+### Integration Example
+
+```python
+# pre-commit hook for security
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: ["-r", "api_wrapper/"]
+  
+  - repo: https://github.com/pyupio/safety
+    rev: 2.3.5
+    hooks:
+      - id: safety
+        args: ["--json"]
+```
+
 ## Additional Resources
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [Python Security Best Practices](https://python.readthedocs.io/en/stable/library/security.html)
 - [API Security Best Practices](https://owasp.org/www-project-api-security/)
-
+- [CWE Top 25](https://cwe.mitre.org/top25/)
+- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)

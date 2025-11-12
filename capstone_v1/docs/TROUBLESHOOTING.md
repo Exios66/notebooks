@@ -149,3 +149,241 @@ Common issues and solutions for the Chatbot API Wrapper.
 | `TimeoutError` | Request too slow | Increase timeout |
 | `ValidationError` | Invalid input | Check input format |
 
+## Metrics and Health Check Issues
+
+### Issue: Health check failing
+
+**Symptoms:**
+- Health endpoint returns 503
+- High error rates reported
+- Provider availability low
+
+**Solutions:**
+
+1. **Check Metrics**:
+   ```python
+   from api_wrapper.metrics import get_metrics_collector
+   metrics = get_metrics_collector()
+   stats = metrics.get_stats()
+   print(stats)
+   ```
+
+2. **Check Health Status**:
+   ```python
+   from api_wrapper.health import get_health_checker
+   checker = get_health_checker()
+   health = checker.check_health()
+   print(health)
+   ```
+
+3. **Check Dependencies**:
+   ```python
+   deps = checker.check_dependencies()
+   if not deps["all_required_available"]:
+       print(f"Missing: {deps['missing_required']}")
+   ```
+
+### Issue: Metrics not collecting
+
+**Solutions:**
+
+1. Ensure metrics collector is initialized
+2. Check if requests are being tracked
+3. Verify metrics context manager is used:
+   ```python
+   from api_wrapper.metrics import MetricsContext, get_metrics_collector
+   
+   collector = get_metrics_collector()
+   with MetricsContext(collector, "openai", "gpt-3.5-turbo") as ctx:
+       # Your API call
+       ctx.set_tokens(100)
+   ```
+
+### Issue: Prometheus metrics format incorrect
+
+**Solutions:**
+
+1. Verify export format:
+   ```python
+   prometheus_output = collector.export_prometheus()
+   print(prometheus_output)
+   ```
+
+2. Check metric names follow Prometheus conventions
+3. Ensure labels are properly formatted
+
+## CI/CD Issues
+
+### Issue: Tests failing in CI
+
+**Solutions:**
+
+1. **Check Python Version**: Ensure CI uses correct Python version
+2. **Install Dependencies**: Verify all dependencies are installed
+3. **Check Environment Variables**: Ensure test API keys are set
+4. **Review Test Markers**: Use `pytest -m "not requires_api"` for unit tests
+
+### Issue: Linting failures
+
+**Solutions:**
+
+1. **Run Black**: `black api_wrapper/ tests/`
+2. **Fix Flake8**: `flake8 api_wrapper/ tests/ --max-line-length=100`
+3. **Type Checking**: `mypy api_wrapper/ --ignore-missing-imports`
+
+### Issue: Security scan failures
+
+**Solutions:**
+
+1. **Update Dependencies**: `pip install --upgrade <package>`
+2. **Review Vulnerabilities**: Check Safety/Bandit reports
+3. **Fix Security Issues**: Address high/critical vulnerabilities
+
+## Deployment Issues
+
+### Issue: Docker build failing
+
+**Solutions:**
+
+1. Check Dockerfile syntax
+2. Verify base image exists
+3. Check build context includes all files
+4. Review build logs for specific errors
+
+### Issue: Kubernetes pod not starting
+
+**Solutions:**
+
+1. **Check Pod Logs**: `kubectl logs <pod-name>`
+2. **Check Events**: `kubectl describe pod <pod-name>`
+3. **Verify Secrets**: Ensure API keys are in secrets
+4. **Check Resource Limits**: Verify sufficient resources
+
+### Issue: Health checks failing in Kubernetes
+
+**Solutions:**
+
+1. Verify health endpoint is accessible
+2. Check liveness/readiness probe configuration
+3. Ensure port is correct
+4. Review initial delay and timeout settings
+
+## Performance Issues
+
+### Issue: Slow response times
+
+**Diagnosis:**
+
+1. Check metrics for average durations
+2. Identify slow providers/models
+3. Review network latency
+4. Check cache hit rates
+
+**Solutions:**
+
+1. Enable caching
+2. Use faster models
+3. Optimize network configuration
+4. Implement connection pooling
+5. Use async clients for concurrent requests
+
+### Issue: High memory usage
+
+**Diagnosis:**
+
+1. Monitor memory metrics
+2. Check cache size
+3. Review local model usage
+
+**Solutions:**
+
+1. Reduce cache size
+2. Clear cache periodically
+3. Use API instead of local models
+4. Increase memory limits
+5. Implement memory-efficient caching
+
+### Issue: High token usage
+
+**Solutions:**
+
+1. Monitor token metrics:
+   ```python
+   stats = metrics.get_stats()
+   print(stats["total_tokens"])
+   ```
+
+2. Optimize prompts to reduce tokens
+3. Set lower max_tokens
+4. Use caching for repeated queries
+5. Monitor costs per provider
+
+## Integration Issues
+
+### Issue: Import errors
+
+**Solutions:**
+
+1. **Install Package**: `pip install -e .`
+2. **Check Python Path**: Verify package is in PYTHONPATH
+3. **Virtual Environment**: Ensure venv is activated
+4. **Dependencies**: Install all required dependencies
+
+### Issue: API wrapper not working with Flask/FastAPI
+
+**Solutions:**
+
+1. Initialize wrapper at app startup
+2. Use connection pooling
+3. Handle exceptions properly
+4. Configure logging appropriately
+
+### Issue: Metrics not appearing in Prometheus
+
+**Solutions:**
+
+1. Verify metrics endpoint is accessible
+2. Check Prometheus scrape configuration
+3. Ensure metrics format is correct
+4. Check network connectivity
+
+## Debugging Tips
+
+1. **Enable Debug Logging**:
+   ```python
+   import logging
+   logging.basicConfig(level=logging.DEBUG)
+   ```
+
+2. **Use Metrics Context**:
+   ```python
+   with MetricsContext(collector, provider, model) as ctx:
+       # Track your request
+   ```
+
+3. **Check Health Status**:
+   ```python
+   health = checker.check_health()
+   if health["status"] != "healthy":
+       print(f"Issues: {health['issues']}")
+   ```
+
+4. **Export Metrics**:
+   ```python
+   # Prometheus format
+   print(collector.export_prometheus())
+   
+   # JSON format
+   print(collector.export_json())
+   ```
+
+5. **Monitor in Real-time**:
+   ```python
+   import time
+   while True:
+       stats = metrics.get_stats()
+       print(f"Requests: {sum(stats['request_counts'].values())}")
+       print(f"Errors: {sum(stats['error_counts'].values())}")
+       time.sleep(5)
+   ```
+
