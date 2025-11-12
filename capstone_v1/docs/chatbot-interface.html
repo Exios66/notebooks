@@ -3,31 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Interface - API Wrapper</title>
+    <title>HuggingChat - Open Source AI Chat</title>
     <style>
         :root {
             --bg-primary: #ffffff;
             --bg-secondary: #f7f7f8;
             --bg-tertiary: #ececf1;
+            --bg-sidebar: #f9f9fa;
             --text-primary: #353740;
             --text-secondary: #6e6e80;
+            --text-tertiary: #8e8ea0;
             --border-color: #e5e5e6;
             --accent-color: #10a37f;
             --accent-hover: #0d8c6f;
+            --omni-color: #6366f1;
             --message-user-bg: #f7f7f8;
             --message-assistant-bg: #ffffff;
             --shadow: rgba(0, 0, 0, 0.1);
+            --sidebar-width: 280px;
         }
 
         [data-theme="dark"] {
             --bg-primary: #212121;
             --bg-secondary: #2d2d2d;
             --bg-tertiary: #3d3d3d;
+            --bg-sidebar: #1a1a1a;
             --text-primary: #ececec;
             --text-secondary: #b3b3b3;
+            --text-tertiary: #8e8ea0;
             --border-color: #4d4d4d;
             --accent-color: #10a37f;
             --accent-hover: #0d8c6f;
+            --omni-color: #818cf8;
             --message-user-bg: #2d2d2d;
             --message-assistant-bg: #212121;
             --shadow: rgba(0, 0, 0, 0.3);
@@ -45,8 +52,162 @@
             color: var(--text-primary);
             height: 100vh;
             display: flex;
-            flex-direction: column;
             transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .new-chat-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .models-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .models-section h2 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 0.75rem;
+            padding: 0 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .model-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .model-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .model-item:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .model-item.active {
+            background-color: var(--bg-tertiary);
+            border-color: var(--accent-color);
+        }
+
+        .model-item.omni {
+            background: linear-gradient(135deg, var(--omni-color) 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .model-item.omni:hover {
+            opacity: 0.9;
+        }
+
+        .model-name {
+            font-weight: 500;
+            font-size: 0.9375rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .model-description {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .model-item.omni .model-description {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .model-badge {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            margin-top: 0.25rem;
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .model-item.omni .model-badge {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .sidebar-footer button {
+            flex: 1;
+            padding: 0.625rem;
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar-footer button:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .header {
@@ -58,51 +219,257 @@
             align-items: center;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 50;
         }
 
-        .header h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
             color: var(--text-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .current-model {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .current-model.omni {
+            background: linear-gradient(135deg, var(--omni-color) 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
         }
 
         .header-controls {
             display: flex;
-            gap: 1rem;
+            gap: 0.5rem;
             align-items: center;
         }
 
-        .theme-toggle {
+        .icon-btn {
             background: none;
             border: 1px solid var(--border-color);
             color: var(--text-primary);
-            padding: 0.5rem 1rem;
+            padding: 0.5rem;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.875rem;
+            font-size: 1rem;
             transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .theme-toggle:hover {
+        .icon-btn:hover {
             background-color: var(--bg-tertiary);
         }
 
-        .settings-btn {
-            background: none;
-            border: 1px solid var(--border-color);
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background-color: var(--bg-tertiary);
             color: var(--text-primary);
-            padding: 0.5rem 1rem;
+        }
+
+        .message-content {
+            flex: 1;
+            line-height: 1.7;
+            color: var(--text-primary);
+            padding: 1rem;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+
+        .message.user .message-content {
+            background-color: var(--message-user-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .message.assistant .message-content {
+            background-color: var(--message-assistant-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .message-content pre {
+            background-color: var(--bg-tertiary);
+            padding: 0.75rem;
             border-radius: 6px;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+        }
+
+        .message-content code {
+            background-color: var(--bg-tertiary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.875em;
+        }
+
+        .input-container {
+            padding: 1.5rem;
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 0.75rem 1rem;
+        }
+
+        .input-field {
+            flex: 1;
+            border: none;
+            background: none;
+            color: var(--text-primary);
+            font-size: 0.9375rem;
+            resize: none;
+            min-height: 24px;
+            max-height: 200px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .send-button {
+            padding: 0.5rem 1rem;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 16px;
             cursor: pointer;
             font-size: 0.875rem;
-            transition: all 0.2s;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
         }
 
-        .settings-btn:hover {
-            background-color: var(--bg-tertiary);
+        .send-button:hover:not(:disabled) {
+            background-color: var(--accent-hover);
         }
 
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+            margin: auto;
+        }
+
+        .empty-state h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .empty-state p {
+            font-size: 0.9375rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Settings Panel */
         .settings-panel {
             position: fixed;
             top: 0;
@@ -167,195 +534,6 @@
             padding: 0.5rem;
         }
 
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 2rem;
-            overflow: hidden;
-        }
-
-        .messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .message {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem;
-            border-radius: 8px;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.user {
-            background-color: var(--message-user-bg);
-            align-self: flex-end;
-            max-width: 80%;
-        }
-
-        .message.assistant {
-            background-color: var(--message-assistant-bg);
-            border: 1px solid var(--border-color);
-            align-self: flex-start;
-            max-width: 80%;
-        }
-
-        .message-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.875rem;
-            flex-shrink: 0;
-        }
-
-        .message.user .message-avatar {
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        .message.assistant .message-avatar {
-            background-color: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        .message-content {
-            flex: 1;
-            line-height: 1.6;
-            color: var(--text-primary);
-        }
-
-        .message-content pre {
-            background-color: var(--bg-tertiary);
-            padding: 0.75rem;
-            border-radius: 4px;
-            overflow-x: auto;
-            margin-top: 0.5rem;
-        }
-
-        .message-content code {
-            background-color: var(--bg-tertiary);
-            padding: 0.2rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.875em;
-        }
-
-        .input-container {
-            padding: 1rem;
-            background-color: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-top: 1rem;
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 0.5rem;
-            align-items: flex-end;
-        }
-
-        .input-field {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            font-size: 0.9375rem;
-            resize: none;
-            min-height: 52px;
-            max-height: 200px;
-            font-family: inherit;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .send-button {
-            padding: 0.75rem 1.5rem;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9375rem;
-            font-weight: 500;
-            transition: background-color 0.2s;
-            height: 52px;
-        }
-
-        .send-button:hover:not(:disabled) {
-            background-color: var(--accent-hover);
-        }
-
-        .send-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid var(--border-color);
-            border-top-color: var(--accent-color);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background-color: #fee;
-            color: #c33;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            border: 1px solid #fcc;
-        }
-
-        [data-theme="dark"] .error-message {
-            background-color: #3d1f1f;
-            border-color: #5d2f2f;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-secondary);
-        }
-
-        .empty-state h2 {
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-
         .overlay {
             display: none;
             position: fixed;
@@ -371,12 +549,46 @@
             display: block;
         }
 
+        .error-message {
+            background-color: #fee;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #fcc;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        [data-theme="dark"] .error-message {
+            background-color: #3d1f1f;
+            border-color: #5d2f2f;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .chat-container {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .messages {
                 padding: 1rem;
             }
 
-            .message {
+            .message-content {
                 max-width: 90%;
             }
 
@@ -388,16 +600,84 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Chatbot Interface</h1>
-        <div class="header-controls">
-            <button class="settings-btn" onclick="toggleSettings()">⚙️ Settings</button>
-            <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Theme</button>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>HuggingChat</h1>
+            <button class="new-chat-btn" onclick="newChat()">
+                <span>+</span> New Chat
+            </button>
+        </div>
+        <div class="models-section">
+            <div class="model-group">
+                <h2>Smart Mode</h2>
+                <div class="model-item omni active" data-model="omni" onclick="selectModel('omni')">
+                    <div class="model-name">Omni</div>
+                    <div class="model-description">Automatically picks the best AI model</div>
+                </div>
+            </div>
+            <div class="model-group">
+                <h2>OpenAI Models</h2>
+                <div id="openai-models"></div>
+            </div>
+            <div class="model-group">
+                <h2>HuggingFace Models</h2>
+                <div id="huggingface-models"></div>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <button class="icon-btn" onclick="toggleSettings()" title="Settings">⚙️</button>
+            <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme">🌓</button>
         </div>
     </div>
 
-    <div class="overlay" id="overlay" onclick="toggleSettings()"></div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="header-left">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                <div class="current-model" id="currentModel">
+                    <span>Omni</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button class="icon-btn" onclick="toggleSettings()" title="Settings">⚙️</button>
+                <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme">🌓</button>
+            </div>
+        </div>
 
+        <div class="chat-container">
+            <div class="messages" id="messages">
+                <div class="empty-state">
+                    <h2>Welcome to HuggingChat</h2>
+                    <p>Start a conversation by typing a message below.</p>
+                    <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-tertiary);">
+                        Omni automatically picks the best AI model to give you optimal answers.
+                    </p>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <div id="errorContainer"></div>
+                <div class="input-wrapper">
+                    <textarea 
+                        class="input-field" 
+                        id="messageInput" 
+                        placeholder="Start chatting..."
+                        rows="1"
+                        onkeydown="handleKeyDown(event)"
+                        oninput="autoResize(this)"
+                    ></textarea>
+                    <button class="send-button" id="sendButton" onclick="sendMessage()">
+                        <span id="sendButtonText">Send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="overlay" id="overlay" onclick="toggleSettings()"></div>
     <div class="settings-panel" id="settingsPanel">
         <button class="close-settings" onclick="toggleSettings()">×</button>
         <h2>Settings</h2>
@@ -408,19 +688,8 @@
         </div>
 
         <div class="form-group">
-            <label for="hfApiKey">HuggingFace API Key (Optional)</label>
+            <label for="hfApiKey">HuggingFace API Key</label>
             <input type="password" id="hfApiKey" placeholder="hf_..." onchange="saveSettings()">
-        </div>
-
-        <div class="form-group">
-            <label for="model">Model</label>
-            <select id="model" onchange="saveSettings()">
-                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                <option value="gpt-4">GPT-4</option>
-                <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                <option value="mistralai/Mistral-7B-Instruct-v0.2">Mistral 7B (HF)</option>
-                <option value="meta-llama/Llama-2-7b-chat-hf">Llama 2 7B (HF)</option>
-            </select>
         </div>
 
         <div class="form-group">
@@ -434,32 +703,26 @@
         </div>
     </div>
 
-    <div class="chat-container">
-        <div class="messages" id="messages">
-            <div class="empty-state">
-                <h2>Welcome to the Chatbot Interface</h2>
-                <p>Start a conversation by typing a message below.</p>
-                <p style="margin-top: 1rem; font-size: 0.875rem;">Configure your API key in settings to begin.</p>
-            </div>
-        </div>
-
-        <div class="input-container">
-            <div id="errorContainer"></div>
-            <div class="input-wrapper">
-                <textarea 
-                    class="input-field" 
-                    id="messageInput" 
-                    placeholder="Type your message here..."
-                    rows="1"
-                    onkeydown="handleKeyDown(event)"
-                    oninput="autoResize(this)"
-                ></textarea>
-                <button class="send-button" id="sendButton" onclick="sendMessage()">Send</button>
-            </div>
-        </div>
-    </div>
-
     <script>
+        // Model configurations
+        const OPENAI_MODELS = {
+            "gpt-4": { name: "GPT-4", description: "OpenAI's most capable model" },
+            "gpt-4-turbo": { name: "GPT-4 Turbo", description: "Faster and more capable GPT-4 variant" },
+            "gpt-4-turbo-preview": { name: "GPT-4 Turbo Preview", description: "Preview version of GPT-4 Turbo" },
+            "gpt-3.5-turbo": { name: "GPT-3.5 Turbo", description: "Fast and efficient GPT-3.5 model" },
+            "gpt-3.5-turbo-16k": { name: "GPT-3.5 Turbo 16K", description: "GPT-3.5 with extended context window" }
+        };
+
+        const HUGGINGFACE_MODELS = {
+            "meta-llama/Llama-2-7b-chat-hf": { name: "Llama 2 7B Chat", description: "Meta's Llama 2 7B chat model" },
+            "meta-llama/Llama-2-13b-chat-hf": { name: "Llama 2 13B Chat", description: "Meta's Llama 2 13B chat model" },
+            "mistralai/Mistral-7B-Instruct-v0.2": { name: "Mistral 7B Instruct", description: "Mistral AI's 7B instruction-tuned model" },
+            "microsoft/DialoGPT-large": { name: "DialoGPT Large", description: "Microsoft's conversational AI model" },
+            "google/flan-t5-xxl": { name: "FLAN-T5 XXL", description: "Google's instruction-tuned T5 model" },
+            "HuggingFaceH4/zephyr-7b-beta": { name: "Zephyr 7B Beta", description: "HuggingFace's Zephyr instruction-tuned model" },
+            "meta-llama/Meta-Llama-3-8B-Instruct": { name: "Llama 3 8B Instruct", description: "Meta's Llama 3 8B instruction model" }
+        };
+
         // Theme management
         const currentTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', currentTheme);
@@ -469,6 +732,11 @@
             const newTheme = current === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
+        }
+
+        // Sidebar management
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
         }
 
         // Settings management
@@ -482,13 +750,11 @@
         function loadSettings() {
             const apiKey = localStorage.getItem('apiKey') || '';
             const hfApiKey = localStorage.getItem('hfApiKey') || '';
-            const model = localStorage.getItem('model') || 'gpt-3.5-turbo';
             const temperature = localStorage.getItem('temperature') || '0.7';
             const maxTokens = localStorage.getItem('maxTokens') || '512';
 
             document.getElementById('apiKey').value = apiKey;
             document.getElementById('hfApiKey').value = hfApiKey;
-            document.getElementById('model').value = model;
             document.getElementById('temperature').value = temperature;
             document.getElementById('maxTokens').value = maxTokens;
             updateTempValue();
@@ -498,7 +764,6 @@
         function saveSettings() {
             localStorage.setItem('apiKey', document.getElementById('apiKey').value);
             localStorage.setItem('hfApiKey', document.getElementById('hfApiKey').value);
-            localStorage.setItem('model', document.getElementById('model').value);
             localStorage.setItem('temperature', document.getElementById('temperature').value);
             localStorage.setItem('maxTokens', document.getElementById('maxTokens').value);
         }
@@ -511,9 +776,86 @@
             document.getElementById('maxTokensValue').textContent = document.getElementById('maxTokens').value;
         }
 
-        // Message handling
+        // Model selection
+        let currentModel = localStorage.getItem('selectedModel') || 'omni';
         let conversationHistory = [];
 
+        function renderModels() {
+            const openaiContainer = document.getElementById('openai-models');
+            const hfContainer = document.getElementById('huggingface-models');
+
+            openaiContainer.innerHTML = '';
+            hfContainer.innerHTML = '';
+
+            Object.entries(OPENAI_MODELS).forEach(([id, info]) => {
+                const item = document.createElement('div');
+                item.className = `model-item ${currentModel === id ? 'active' : ''}`;
+                item.setAttribute('data-model', id);
+                item.onclick = () => selectModel(id);
+                item.innerHTML = `
+                    <div class="model-name">${info.name}</div>
+                    <div class="model-description">${info.description}</div>
+                    <span class="model-badge">OpenAI</span>
+                `;
+                openaiContainer.appendChild(item);
+            });
+
+            Object.entries(HUGGINGFACE_MODELS).forEach(([id, info]) => {
+                const item = document.createElement('div');
+                item.className = `model-item ${currentModel === id ? 'active' : ''}`;
+                item.setAttribute('data-model', id);
+                item.onclick = () => selectModel(id);
+                item.innerHTML = `
+                    <div class="model-name">${info.name}</div>
+                    <div class="model-description">${info.description}</div>
+                    <span class="model-badge">HuggingFace</span>
+                `;
+                hfContainer.appendChild(item);
+            });
+
+            // Update Omni active state
+            const omniItem = document.querySelector('[data-model="omni"]');
+            if (omniItem) {
+                if (currentModel === 'omni') {
+                    omniItem.classList.add('active');
+                } else {
+                    omniItem.classList.remove('active');
+                }
+            }
+
+            updateCurrentModelDisplay();
+        }
+
+        function selectModel(modelId) {
+            currentModel = modelId;
+            localStorage.setItem('selectedModel', modelId);
+            renderModels();
+        }
+
+        function updateCurrentModelDisplay() {
+            const currentModelEl = document.getElementById('currentModel');
+            if (currentModel === 'omni') {
+                currentModelEl.className = 'current-model omni';
+                currentModelEl.innerHTML = '<span>✨ Omni</span>';
+            } else {
+                currentModelEl.className = 'current-model';
+                const modelInfo = OPENAI_MODELS[currentModel] || HUGGINGFACE_MODELS[currentModel];
+                if (modelInfo) {
+                    currentModelEl.innerHTML = `<span>${modelInfo.name}</span>`;
+                } else {
+                    currentModelEl.innerHTML = '<span>Unknown Model</span>';
+                }
+            }
+        }
+
+        function getBestModel(message) {
+            // Simple heuristic: use GPT-4 for complex queries, GPT-3.5 for simple ones
+            const complexKeywords = ['explain', 'analyze', 'compare', 'why', 'how', 'what is', 'describe'];
+            const isComplex = complexKeywords.some(keyword => message.toLowerCase().includes(keyword));
+            return isComplex ? 'gpt-4' : 'gpt-3.5-turbo';
+        }
+
+        // Message handling
         function addMessage(role, content) {
             const messagesContainer = document.getElementById('messages');
             const emptyState = messagesContainer.querySelector('.empty-state');
@@ -552,6 +894,7 @@
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             const sendButton = document.getElementById('sendButton');
+            const sendButtonText = document.getElementById('sendButtonText');
 
             if (!message) return;
 
@@ -566,7 +909,7 @@
             input.value = '';
             autoResize(input);
             sendButton.disabled = true;
-            sendButton.innerHTML = '<div class="loading"></div>';
+            sendButtonText.innerHTML = '<div class="loading"></div>';
 
             // Add user message
             addMessage('user', message);
@@ -577,20 +920,25 @@
             const assistantContent = assistantMsg.querySelector('.message-content');
 
             try {
-                const model = localStorage.getItem('model') || 'gpt-3.5-turbo';
+                // Determine which model to use
+                let modelToUse = currentModel;
+                if (currentModel === 'omni') {
+                    modelToUse = getBestModel(message);
+                }
+
                 const temperature = parseFloat(localStorage.getItem('temperature') || '0.7');
                 const maxTokens = parseInt(localStorage.getItem('maxTokens') || '512');
 
                 // Determine if using OpenAI or HuggingFace
-                const isOpenAI = model.startsWith('gpt') || model.includes('openai');
+                const isOpenAI = modelToUse.startsWith('gpt') || modelToUse.includes('openai') || OPENAI_MODELS[modelToUse];
                 const provider = isOpenAI ? 'openai' : 'huggingface';
 
                 let response;
                 if (isOpenAI) {
-                    response = await callOpenAI(apiKey, model, conversationHistory, temperature, maxTokens);
+                    response = await callOpenAI(apiKey, modelToUse, conversationHistory, temperature, maxTokens);
                 } else {
                     const hfApiKey = localStorage.getItem('hfApiKey') || apiKey;
-                    response = await callHuggingFace(hfApiKey, model, message, temperature, maxTokens);
+                    response = await callHuggingFace(hfApiKey, modelToUse, message, temperature, maxTokens);
                 }
 
                 assistantContent.textContent = response;
@@ -600,7 +948,7 @@
                 showError(error.message);
             } finally {
                 sendButton.disabled = false;
-                sendButton.textContent = 'Send';
+                sendButtonText.textContent = 'Send';
                 document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
             }
         }
@@ -658,6 +1006,20 @@
             return data.generated_text || data.text || '';
         }
 
+        function newChat() {
+            conversationHistory = [];
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.innerHTML = `
+                <div class="empty-state">
+                    <h2>Welcome to HuggingChat</h2>
+                    <p>Start a conversation by typing a message below.</p>
+                    <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-tertiary);">
+                        Omni automatically picks the best AI model to give you optimal answers.
+                    </p>
+                </div>
+            `;
+        }
+
         function handleKeyDown(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
@@ -672,7 +1034,8 @@
 
         // Initialize
         loadSettings();
+        renderModels();
+        updateCurrentModelDisplay();
     </script>
 </body>
 </html>
-

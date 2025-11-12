@@ -31,33 +31,42 @@ Get up and running in minutes:
 ## Documentation Sections
 
 ### [Startup Guide](STARTUP_GUIDE.md)
+
 Complete step-by-step guide for new users to get up and running.
 
 ### [Getting Started](getting-started.md)
+
 Installation instructions and basic usage examples.
 
 ### [API Reference](api-reference.md)
+
 Comprehensive API documentation with all endpoints, parameters, and return values.
 
 ### [API Endpoints](api-endpoints.md)
+
 Detailed reference for all API endpoints and methods.
 
 ### [Chatbot Interface](chatbot-interface.html)
+
 Interactive web-based chatbot interface for testing models.
 
 ### [Examples](examples.md)
+
 Code examples and use cases for common scenarios.
 
 ### [New Features](../api_wrapper/FEATURES.md)
+
 Comprehensive guide to starter prompts and dataset loaders.
 
 ## Supported Models
 
 ### OpenAI Models
+
 - GPT-4, GPT-4 Turbo
 - GPT-3.5 Turbo variants
 
 ### HuggingFace Models
+
 - Llama 2/3 (Meta)
 - Mistral AI models
 - DialoGPT (Microsoft)
@@ -66,7 +75,7 @@ Comprehensive guide to starter prompts and dataset loaders.
 
 ## Project Structure
 
-```
+```bash
 capstone_v1/
 ├── api_wrapper/          # Main package
 │   ├── __init__.py
@@ -91,5 +100,4 @@ capstone_v1/
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: 2024
-
+**Last Updated**: 2025-11-12

@@ -211,5 +211,3 @@ See `examples.py` for comprehensive usage examples.
 ## License
 
 This project is part of the capstone project template.
-
-

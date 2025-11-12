@@ -24,12 +24,14 @@ ChatbotWrapper(
 ```
 
 **Parameters:**
+
 - `huggingface_api_key` (str, optional): HuggingFace API key
 - `openai_api_key` (str, optional): OpenAI API key
 - `use_local_hf` (bool): Use local HuggingFace models instead of API
 - `hf_device` (str): Device for local models ('cpu', 'cuda', 'auto')
 
 **Example:**
+
 ```python
 wrapper = ChatbotWrapper(
     openai_api_key="sk-...",
@@ -59,6 +61,7 @@ chat(
 ```
 
 **Parameters:**
+
 - `model` (str): Model identifier (e.g., 'gpt-3.5-turbo', 'mistralai/Mistral-7B-Instruct-v0.2')
 - `messages` (str | List[Dict]): Message string or list of message dicts with 'role' and 'content'
 - `provider` (str): Provider to use ('huggingface', 'openai', 'auto')
@@ -67,6 +70,7 @@ chat(
 - `**kwargs`: Additional provider-specific parameters
 
 **Returns:**
+
 ```python
 {
     "response": str,           # Generated response text
@@ -78,6 +82,7 @@ chat(
 ```
 
 **Example:**
+
 ```python
 response = wrapper.chat(
     model="gpt-3.5-turbo",
@@ -109,6 +114,7 @@ stream_chat(
 **Returns:** Iterator yielding response chunks (str)
 
 **Example:**
+
 ```python
 for chunk in wrapper.stream_chat(
     model="gpt-3.5-turbo",
@@ -128,9 +134,11 @@ list_models(provider: Optional[Union[Provider, str]] = None) -> Dict[str, List[s
 ```
 
 **Parameters:**
+
 - `provider` (str, optional): Provider to list ('huggingface', 'openai', or None for all)
 
 **Returns:**
+
 ```python
 {
     "huggingface": ["model1", "model2", ...],
@@ -139,6 +147,7 @@ list_models(provider: Optional[Union[Provider, str]] = None) -> Dict[str, List[s
 ```
 
 **Example:**
+
 ```python
 models = wrapper.list_models()
 print(models["openai"])
@@ -155,9 +164,11 @@ get_model_info(model: str) -> Dict[str, Any]
 ```
 
 **Parameters:**
+
 - `model` (str): Model identifier
 
 **Returns:**
+
 ```python
 {
     "name": str,
@@ -168,6 +179,7 @@ get_model_info(model: str) -> Dict[str, Any]
 ```
 
 **Example:**
+
 ```python
 info = wrapper.get_model_info("gpt-3.5-turbo")
 print(info["description"])
@@ -191,6 +203,7 @@ conversation(
 ```
 
 **Parameters:**
+
 - `model` (str): Model identifier
 - `system_prompt` (str, optional): System prompt to set context
 - `provider` (str): Provider to use
@@ -201,6 +214,7 @@ conversation(
 **Returns:** `Conversation` object
 
 **Example:**
+
 ```python
 conv = wrapper.conversation(
     model="gpt-3.5-turbo",
@@ -226,11 +240,13 @@ send(message: str) -> str
 ```
 
 **Parameters:**
+
 - `message` (str): User message
 
 **Returns:** Assistant response (str)
 
 **Example:**
+
 ```python
 response = conv.send("What is Python?")
 ```
@@ -244,11 +260,13 @@ stream_send(message: str) -> Iterator[str]
 ```
 
 **Parameters:**
+
 - `message` (str): User message
 
 **Returns:** Iterator yielding response chunks
 
 **Example:**
+
 ```python
 for chunk in conv.stream_send("Tell me a story"):
     print(chunk, end='', flush=True)
@@ -263,6 +281,7 @@ reset() -> None
 ```
 
 **Example:**
+
 ```python
 conv.reset()
 ```
@@ -278,6 +297,7 @@ get_history() -> List[Dict[str, str]]
 **Returns:** List of message dictionaries
 
 **Example:**
+
 ```python
 history = conv.get_history()
 for msg in history:
@@ -349,6 +369,7 @@ Provider.AUTO         # Auto-detect from model name
 ### String Format
 
 Simple string message:
+
 ```python
 messages = "Hello, how are you?"
 ```
@@ -356,6 +377,7 @@ messages = "Hello, how are you?"
 ### List Format
 
 List of message dictionaries:
+
 ```python
 messages = [
     {"role": "system", "content": "You are a helpful assistant."},
@@ -366,6 +388,7 @@ messages = [
 ```
 
 **Roles:**
+
 - `system`: System prompt (optional, typically first message)
 - `user`: User messages
 - `assistant`: Assistant responses (for context)
@@ -377,6 +400,7 @@ messages = [
 ### Common Exceptions
 
 **ValueError**: Invalid parameters or missing API keys
+
 ```python
 try:
     wrapper.chat(model="invalid", messages="test")
@@ -385,6 +409,7 @@ except ValueError as e:
 ```
 
 **Exception**: API request failures
+
 ```python
 try:
     response = wrapper.chat(model="gpt-3.5-turbo", messages="test")
@@ -472,4 +497,3 @@ response = wrapper.chat(
     "method": "api"  # or "local"
 }
 ```
-

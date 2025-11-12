@@ -199,6 +199,35 @@ Visit: <http://localhost:4000>
 - ✅ Test locally: `bundle exec jekyll build`
 - ✅ Verify Ruby version (3.1+)
 
+### Disk Space Issues
+
+If you see "insufficient space remaining on the device" errors:
+
+**Quick Fix:**
+
+```bash
+# Clean pip cache (frees ~3.6GB)
+pip cache purge
+
+# Clean Homebrew cache (frees ~1GB)
+brew cleanup --prune=all
+
+# Or run the cleanup script
+./capstone_v1/cleanup-disk-space.sh
+```
+
+**Check disk space:**
+
+```bash
+df -h .
+```
+
+**Additional cleanup options:**
+- Empty Trash
+- Remove old downloads
+- Use macOS Storage Management (Apple menu > About This Mac > Storage)
+- Clean browser caches
+
 ## 🎯 Next Steps
 
 1. **Initialize Git** (if needed)

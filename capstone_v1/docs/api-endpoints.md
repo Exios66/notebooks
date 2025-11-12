@@ -21,6 +21,7 @@ The Chatbot API Wrapper provides programmatic access to chatbot models through P
 **Description:** Initialize the main wrapper class.
 
 **Parameters:**
+
 - `huggingface_api_key` (str, optional): HuggingFace API key
 - `openai_api_key` (str, optional): OpenAI API key  
 - `use_local_hf` (bool, default: False): Use local HuggingFace models
@@ -29,6 +30,7 @@ The Chatbot API Wrapper provides programmatic access to chatbot models through P
 **Returns:** `ChatbotWrapper` instance
 
 **Example:**
+
 ```python
 wrapper = ChatbotWrapper(
     openai_api_key="sk-...",
@@ -46,6 +48,7 @@ wrapper = ChatbotWrapper(
 **Description:** Generate a chat response from a model.
 
 **Method Signature:**
+
 ```python
 chat(
     model: str,
@@ -69,6 +72,7 @@ chat(
 | `**kwargs` | dict | No | - | Provider-specific parameters |
 
 **Returns:**
+
 ```python
 {
     "response": str,           # Generated text
@@ -80,6 +84,7 @@ chat(
 ```
 
 **Example:**
+
 ```python
 response = wrapper.chat(
     model="gpt-3.5-turbo",
@@ -90,6 +95,7 @@ response = wrapper.chat(
 ```
 
 **Error Responses:**
+
 - `ValueError`: Invalid parameters or missing API keys
 - `Exception`: API request failures
 
@@ -102,6 +108,7 @@ response = wrapper.chat(
 **Description:** Stream chat responses in real-time.
 
 **Method Signature:**
+
 ```python
 stream_chat(
     model: str,
@@ -118,6 +125,7 @@ stream_chat(
 **Returns:** Iterator yielding response chunks (str)
 
 **Example:**
+
 ```python
 for chunk in wrapper.stream_chat(
     model="gpt-3.5-turbo",
@@ -135,6 +143,7 @@ for chunk in wrapper.stream_chat(
 **Description:** List available models for specified provider(s).
 
 **Method Signature:**
+
 ```python
 list_models(provider: Optional[Union[Provider, str]] = None) -> Dict[str, List[str]]
 ```
@@ -146,6 +155,7 @@ list_models(provider: Optional[Union[Provider, str]] = None) -> Dict[str, List[s
 | `provider` | str | No | None | Provider name or None for all |
 
 **Returns:**
+
 ```python
 {
     "huggingface": ["model1", "model2", ...],
@@ -154,6 +164,7 @@ list_models(provider: Optional[Union[Provider, str]] = None) -> Dict[str, List[s
 ```
 
 **Example:**
+
 ```python
 models = wrapper.list_models()
 openai_models = wrapper.list_models(provider="openai")
@@ -168,6 +179,7 @@ openai_models = wrapper.list_models(provider="openai")
 **Description:** Get information about a specific model.
 
 **Method Signature:**
+
 ```python
 get_model_info(model: str) -> Dict[str, Any]
 ```
@@ -179,6 +191,7 @@ get_model_info(model: str) -> Dict[str, Any]
 | `model` | str | Yes | Model identifier |
 
 **Returns:**
+
 ```python
 {
     "name": str,
@@ -189,6 +202,7 @@ get_model_info(model: str) -> Dict[str, Any]
 ```
 
 **Example:**
+
 ```python
 info = wrapper.get_model_info("gpt-3.5-turbo")
 ```
@@ -202,6 +216,7 @@ info = wrapper.get_model_info("gpt-3.5-turbo")
 **Description:** Create a conversation context for multi-turn interactions.
 
 **Method Signature:**
+
 ```python
 conversation(
     model: str,
@@ -227,6 +242,7 @@ conversation(
 **Returns:** `Conversation` instance
 
 **Example:**
+
 ```python
 conv = wrapper.conversation(
     model="gpt-3.5-turbo",
@@ -246,6 +262,7 @@ conv = wrapper.conversation(
 **Description:** Send a message and get response.
 
 **Method Signature:**
+
 ```python
 send(message: str) -> str
 ```
@@ -259,6 +276,7 @@ send(message: str) -> str
 **Returns:** Assistant response (str)
 
 **Example:**
+
 ```python
 response = conv.send("What is Python?")
 ```
@@ -272,6 +290,7 @@ response = conv.send("What is Python?")
 **Description:** Send a message and stream response.
 
 **Method Signature:**
+
 ```python
 stream_send(message: str) -> Iterator[str]
 ```
@@ -281,6 +300,7 @@ stream_send(message: str) -> Iterator[str]
 **Returns:** Iterator yielding response chunks
 
 **Example:**
+
 ```python
 for chunk in conv.stream_send("Tell me a story"):
     print(chunk, end='', flush=True)
@@ -295,6 +315,7 @@ for chunk in conv.stream_send("Tell me a story"):
 **Description:** Reset conversation history (keeps system prompt).
 
 **Method Signature:**
+
 ```python
 reset() -> None
 ```
@@ -304,6 +325,7 @@ reset() -> None
 **Returns:** None
 
 **Example:**
+
 ```python
 conv.reset()
 ```
@@ -317,6 +339,7 @@ conv.reset()
 **Description:** Get conversation history.
 
 **Method Signature:**
+
 ```python
 get_history() -> List[Dict[str, str]]
 ```
@@ -326,6 +349,7 @@ get_history() -> List[Dict[str, str]]
 **Returns:** List of message dictionaries
 
 **Example:**
+
 ```python
 history = conv.get_history()
 ```
@@ -339,6 +363,7 @@ history = conv.get_history()
 **Endpoint:** `HuggingFaceClient()`
 
 **Parameters:**
+
 - `api_key` (str, optional): HuggingFace API key
 - `use_local` (bool, default: False): Use local models
 - `device` (str, default: "auto"): Device ("cpu", "cuda", "auto")
@@ -358,6 +383,7 @@ history = conv.get_history()
 **Endpoint:** `OpenAIClient()`
 
 **Parameters:**
+
 - `api_key` (str, optional): OpenAI API key
 - `base_url` (str, optional): Custom base URL
 
@@ -434,11 +460,13 @@ history = conv.get_history()
 ### Common Error Types
 
 **ValueError**
+
 - Missing API keys
 - Invalid model names
 - Invalid parameter values
 
 **Exception**
+
 - API request failures
 - Network errors
 - Model loading errors
@@ -457,10 +485,12 @@ history = conv.get_history()
 ## Rate Limits
 
 ### OpenAI
+
 - Varies by model and tier
 - Check OpenAI documentation for current limits
 
 ### HuggingFace
+
 - Free tier: Limited requests
 - Pro tier: Higher limits
 - Check HuggingFace documentation
@@ -491,4 +521,3 @@ history = conv.get_history()
 | `conv.stream_send()` | POST | Iterator[str] |
 | `conv.reset()` | POST | None |
 | `conv.get_history()` | GET | List[Dict] |
-
