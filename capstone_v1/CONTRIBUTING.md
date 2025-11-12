@@ -81,4 +81,3 @@ mypy api_wrapper/
 ## Questions?
 
 Open an issue or contact the maintainers.
-
