@@ -2,7 +2,6 @@
 OpenAI API Client for chatbot interactions
 """
 
-import os
 from typing import Dict, List, Optional, Union, Any, Iterator
 import openai
 from openai import OpenAI
@@ -206,4 +205,3 @@ class OpenAIClient:
         """Get information about a specific model"""
         from .config import OPENAI_CHATBOT_MODELS
         return OPENAI_CHATBOT_MODELS.get(model, {})
-

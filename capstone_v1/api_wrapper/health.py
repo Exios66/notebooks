@@ -4,9 +4,8 @@ Includes dependency checks and HTTP endpoint support
 """
 
 import time
-import sys
 import importlib
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, Tuple
 from datetime import datetime
 
 from .logger import get_logger
@@ -17,39 +16,39 @@ logger = get_logger("api_wrapper.health")
 
 class HealthChecker:
     """Health check manager with dependency checks"""
-    
+
     def __init__(self):
         self.logger = get_logger("api_wrapper.health")
         self.start_time = time.time()
         self.last_check: Optional[float] = None
         self.dependencies: Dict[str, bool] = {}
         self._check_dependencies()
-    
+
     def check_health(self) -> Dict[str, Any]:
         """
         Perform health check
-        
+
         Returns:
             Health status dictionary
         """
         self.last_check = time.time()
         uptime = self.last_check - self.start_time
-        
+
         # Get metrics
         metrics = get_metrics_collector()
         stats = metrics.get_stats()
-        
+
         # Determine overall health
         health_status = "healthy"
         issues = []
-        
+
         # Check provider availability
         for provider, availability in stats.get("provider_availability", {}).items():
             avail_pct = availability.get("availability_percent", 0.0)
             if avail_pct < 95.0 and availability.get("total_requests", 0) > 10:
                 health_status = "degraded"
                 issues.append(f"{provider} availability is {avail_pct:.1f}%")
-        
+
         # Check error rates
         total_requests = sum(stats.get("request_counts", {}).values())
         total_errors = sum(stats.get("error_counts", {}).values())
@@ -58,7 +57,7 @@ class HealthChecker:
             if error_rate > 10.0:
                 health_status = "unhealthy"
                 issues.append(f"Error rate is {error_rate:.1f}%")
-        
+
         return {
             "status": health_status,
             "uptime_seconds": uptime,
@@ -71,11 +70,11 @@ class HealthChecker:
             "provider_availability": stats.get("provider_availability", {}),
             "issues": issues,
         }
-    
+
     def check_readiness(self) -> Dict[str, Any]:
         """
         Check if system is ready to serve requests
-        
+
         Returns:
             Readiness status
         """
@@ -83,11 +82,11 @@ class HealthChecker:
             "ready": True,
             "timestamp": datetime.utcnow().isoformat(),
         }
-    
+
     def check_liveness(self) -> Dict[str, Any]:
         """
         Check if system is alive
-        
+
         Returns:
             Liveness status
         """
@@ -96,7 +95,7 @@ class HealthChecker:
             "uptime_seconds": time.time() - self.start_time,
             "timestamp": datetime.utcnow().isoformat(),
         }
-    
+
     def _check_dependencies(self):
         """Check availability of required dependencies"""
         required_modules = [
@@ -105,7 +104,7 @@ class HealthChecker:
             "transformers",
             "torch",
         ]
-        
+
         optional_modules = [
             "pydantic",
             "tenacity",
@@ -113,7 +112,7 @@ class HealthChecker:
             "structlog",
             "httpx",
         ]
-        
+
         for module in required_modules:
             try:
                 importlib.import_module(module)
@@ -121,18 +120,18 @@ class HealthChecker:
             except ImportError:
                 self.dependencies[module] = False
                 self.logger.warning(f"Required dependency {module} not available")
-        
+
         for module in optional_modules:
             try:
                 importlib.import_module(module)
                 self.dependencies[module] = True
             except ImportError:
                 self.dependencies[module] = False
-    
+
     def check_dependencies(self) -> Dict[str, Any]:
         """
         Check dependency availability
-        
+
         Returns:
             Dependency status dictionary
         """
@@ -140,21 +139,21 @@ class HealthChecker:
             name for name, available in self.dependencies.items()
             if not available and name in ["requests", "openai", "transformers", "torch"]
         ]
-        
+
         return {
             "dependencies": self.dependencies,
             "all_required_available": len(missing_required) == 0,
             "missing_required": missing_required,
             "timestamp": datetime.utcnow().isoformat(),
         }
-    
+
     def get_http_response(self, endpoint: str = "health") -> Tuple[Dict[str, Any], int]:
         """
         Get HTTP response for health endpoints
-        
+
         Args:
             endpoint: Endpoint type ('health', 'readiness', 'liveness')
-        
+
         Returns:
             Tuple of (response_dict, status_code)
         """
@@ -186,4 +185,3 @@ def get_health_checker() -> HealthChecker:
     if _health_checker is None:
         _health_checker = HealthChecker()
     return _health_checker
-

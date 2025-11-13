@@ -7,7 +7,6 @@ import os
 import sys
 from pathlib import Path
 import json
-from typing import List, Dict
 
 try:
     import pandas as pd
@@ -17,9 +16,9 @@ except ImportError:
     print("Note: pandas not available for dataset examples")
 
 # Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))  # noqa: E402
 
-from api_wrapper import ChatbotWrapper, Provider
+from api_wrapper import ChatbotWrapper  # noqa: E402
 try:
     from api_wrapper.starter_prompts import get_prompt, list_available_prompts
     PROMPTS_AVAILABLE = True
@@ -33,6 +32,22 @@ try:
 except ImportError:
     DATASETS_AVAILABLE = False
     print("Note: dataset_loaders module not available")
+
+try:
+    from models.models_registry import (
+        get_model_info,
+        list_models_by_provider,
+        list_models_by_type,
+        search_models,
+        get_free_models,
+        get_local_models,
+        ModelType,
+        ALL_MODELS,
+    )
+    MODELS_REGISTRY_AVAILABLE = True
+except ImportError:
+    MODELS_REGISTRY_AVAILABLE = False
+    print("Note: models registry not available")
 
 
 def example_basic_usage():
@@ -222,7 +237,7 @@ def example_domain_specific():
         system_prompt=get_prompt("data_science"),
     )
     response = ds_conv.send("What's the difference between L1 and L2 regularization?")
-    print(f"Q: What's the difference between L1 and L2 regularization?")
+    print("Q: What's the difference between L1 and L2 regularization?")
     print(f"A: {response[:150]}...\n")
 
     # Math Tutor
@@ -232,7 +247,7 @@ def example_domain_specific():
         system_prompt=get_prompt("math"),
     )
     response = math_conv.send("Explain the chain rule in calculus")
-    print(f"Q: Explain the chain rule in calculus")
+    print("Q: Explain the chain rule in calculus")
     print(f"A: {response[:150]}...\n")
 
 
@@ -298,7 +313,7 @@ def example_error_handling():
 
     # Try with invalid model
     try:
-        response = wrapper.chat(
+        wrapper.chat(
             model="invalid-model-name",
             messages="Hello",
         )
@@ -308,7 +323,7 @@ def example_error_handling():
     # Try with missing API key
     try:
         bad_wrapper = ChatbotWrapper(openai_api_key=None)
-        response = bad_wrapper.chat(
+        bad_wrapper.chat(
             model="gpt-3.5-turbo",
             messages="Hello",
         )
@@ -442,7 +457,7 @@ def example_dataset_loading():
     print("\n--- Loading Scikit-learn Dataset ---")
     try:
         data = loader.load_sklearn("iris")
-        print(f"Loaded Iris dataset")
+        print("Loaded Iris dataset")
         if hasattr(data, 'data'):
             print(f"Features shape: {data.data.shape}")
             print(f"Target shape: {data.target.shape}\n")
@@ -467,7 +482,7 @@ def example_dataset_conversion():
     if not PANDAS_AVAILABLE:
         print("pandas not available. Skipping dataset conversion example.\n")
         return
-    
+
     sample_data = pd.DataFrame({
         "instruction": [
             "What is Python?",
@@ -619,6 +634,11 @@ if __name__ == "__main__":
         example_model_info,
         example_advanced_message_formatting,
         example_all_starter_prompts,
+        example_models_registry_info,
+        example_models_registry_search,
+        example_models_registry_free_tier,
+        example_models_registry_local,
+        example_models_registry_comparison,
     ]
 
     # Optional examples (require additional setup)
@@ -631,6 +651,7 @@ if __name__ == "__main__":
         example_provider_comparison,  # Requires both API keys
         example_dataset_loading,  # Requires dataset_loaders module
         example_dataset_conversion,  # Requires dataset_loaders module
+        example_models_registry_integration,  # Requires models registry and API keys
     ]
 
     print("\n" + "=" * 70)
@@ -667,4 +688,3 @@ if __name__ == "__main__":
         print("\nMake sure to set your API keys as environment variables:")
         print("export OPENAI_API_KEY='your-key-here'")
         print("export HUGGINGFACE_API_KEY='your-key-here'")
-

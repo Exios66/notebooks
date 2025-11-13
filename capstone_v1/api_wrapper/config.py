@@ -1,9 +1,15 @@
 """
 Configuration module for API credentials and model settings
+
+For comprehensive model information including full endpoints, specifications,
+licensing, and use cases, see the models registry:
+- models/models_registry.py (Python module)
+- models/models_registry.json (JSON export)
+- models/README.md (Documentation)
 """
 
 import os
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 # HuggingFace Configuration
 HUGGINGFACE_API_KEY: Optional[str] = os.getenv("HUGGINGFACE_API_KEY")
@@ -93,3 +99,38 @@ DEFAULT_MAX_TOKENS: int = 512
 DEFAULT_TOP_P: float = 0.9
 DEFAULT_TOP_K: int = 50
 
+
+def get_model_registry():
+    """
+    Get the comprehensive models registry with full information and endpoints.
+    
+    Returns:
+        Dict containing all model information from the models registry
+        
+    Example:
+        >>> from api_wrapper.config import get_model_registry
+        >>> registry = get_model_registry()
+        >>> model_info = registry.get_model_info("gpt-3.5-turbo")
+    """
+    try:
+        from models.models_registry import (
+            get_model_info,
+            list_models_by_provider,
+            list_models_by_type,
+            search_models,
+            get_free_models,
+            get_local_models,
+            ALL_MODELS,
+        )
+        return {
+            "get_model_info": get_model_info,
+            "list_models_by_provider": list_models_by_provider,
+            "list_models_by_type": list_models_by_type,
+            "search_models": search_models,
+            "get_free_models": get_free_models,
+            "get_local_models": get_local_models,
+            "ALL_MODELS": ALL_MODELS,
+        }
+    except ImportError:
+        # Fallback if models registry is not available
+        return None

@@ -3,11 +3,9 @@ HuggingFace API Client for chatbot interactions
 Supports both Inference API and local model loading
 """
 
-import os
 import requests
-import json
 from typing import Dict, List, Optional, Union, Any
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 from .config import (
@@ -26,7 +24,6 @@ from .exceptions import (
     ModelNotFoundError,
     NetworkError,
     TimeoutError,
-    ProviderError,
 )
 
 
@@ -184,7 +181,7 @@ class HuggingFaceClient:
             response = requests.post(
                 url, headers=self._get_headers(), json=payload, timeout=120
             )
-            
+
             # Handle rate limiting
             if response.status_code == 429:
                 retry_after = int(response.headers.get("Retry-After", 60))
@@ -193,21 +190,21 @@ class HuggingFaceClient:
                     retry_after=retry_after,
                     details={"model": model_id, "status_code": 429}
                 )
-            
+
             # Handle authentication errors
             if response.status_code == 401:
                 raise AuthenticationError(
                     "Invalid HuggingFace API key",
                     details={"model": model_id, "status_code": 401}
                 )
-            
+
             # Handle model not found
             if response.status_code == 404:
                 raise ModelNotFoundError(
                     model_id,
                     details={"status_code": 404}
                 )
-            
+
             response.raise_for_status()
 
             result = response.json()
@@ -229,7 +226,7 @@ class HuggingFaceClient:
             }
         except requests.exceptions.Timeout as e:
             raise TimeoutError(
-                f"HuggingFace API request timeout",
+                "HuggingFace API request timeout",
                 timeout=120,
                 details={"model": model_id, "error": str(e)}
             )
@@ -372,4 +369,3 @@ class HuggingFaceClient:
         """List available models (returns configured models)"""
         from .config import HUGGINGFACE_CHATBOT_MODELS
         return list(HUGGINGFACE_CHATBOT_MODELS.keys())
-

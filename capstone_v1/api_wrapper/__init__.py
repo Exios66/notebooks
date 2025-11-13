@@ -9,7 +9,7 @@ from .openai_client import OpenAIClient
 
 # Optional imports for additional functionality
 try:
-    from .starter_prompts import (
+    from .starter_prompts import (  # noqa: F401
         get_prompt,
         list_available_prompts,
         ALL_PROMPTS,
@@ -22,7 +22,7 @@ except ImportError:
     _PROMPTS_AVAILABLE = False
 
 try:
-    from .dataset_loaders import (
+    from .dataset_loaders import (  # noqa: F401
         DatasetLoader,
         get_available_datasets,
         HUGGINGFACE_CHAT_DATASETS,
@@ -36,7 +36,7 @@ except ImportError:
 
 # Production features
 try:
-    from .exceptions import (
+    from .exceptions import (  # noqa: F401
         ChatbotAPIError,
         APIError,
         RateLimitError,
@@ -46,13 +46,13 @@ try:
         NetworkError,
         TimeoutError,
     )
-    from .logger import get_logger, setup_logger
-    from .retry import exponential_backoff, RetryHandler
-    from .rate_limiter import RateLimiter, get_rate_limiter
-    from .cache import ResponseCache, get_cache
-    from .metrics import MetricsCollector, get_metrics_collector
-    from .health import HealthChecker, get_health_checker
-    from .security import (
+    from .logger import get_logger, setup_logger  # noqa: F401
+    from .retry import exponential_backoff, RetryHandler  # noqa: F401
+    from .rate_limiter import RateLimiter, get_rate_limiter  # noqa: F401
+    from .cache import ResponseCache, get_cache  # noqa: F401
+    from .metrics import MetricsCollector, get_metrics_collector  # noqa: F401
+    from .health import HealthChecker, get_health_checker  # noqa: F401
+    from .security import (  # noqa: F401
         validate_message,
         validate_messages,
         validate_model_name,
@@ -121,4 +121,3 @@ if _PRODUCTION_AVAILABLE:
         "validate_temperature",
         "validate_max_tokens",
     ])
-

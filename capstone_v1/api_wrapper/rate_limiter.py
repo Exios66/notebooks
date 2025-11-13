@@ -5,7 +5,6 @@ Rate limiting implementation using token bucket algorithm
 import time
 import threading
 from typing import Optional, Dict
-from collections import defaultdict
 from dataclasses import dataclass, field
 
 from .logger import get_logger
@@ -22,7 +21,7 @@ class TokenBucket:
     tokens: float = field(default=0.0)
     last_refill: float = field(default_factory=time.time)
     lock: threading.Lock = field(default_factory=threading.Lock)
-    
+
     def _refill(self):
         """Refill tokens based on elapsed time"""
         now = time.time()
@@ -32,14 +31,14 @@ class TokenBucket:
             self.tokens + (elapsed * self.refill_rate)
         )
         self.last_refill = now
-    
+
     def acquire(self, tokens: float = 1.0) -> bool:
         """
         Try to acquire tokens from the bucket
-        
+
         Args:
             tokens: Number of tokens to acquire
-        
+
         Returns:
             True if tokens were acquired, False otherwise
         """
@@ -49,14 +48,14 @@ class TokenBucket:
                 self.tokens -= tokens
                 return True
             return False
-    
+
     def wait_for_tokens(self, tokens: float = 1.0) -> float:
         """
         Wait until tokens are available and acquire them
-        
+
         Args:
             tokens: Number of tokens to acquire
-        
+
         Returns:
             Wait time in seconds
         """
@@ -65,11 +64,11 @@ class TokenBucket:
             if self.tokens >= tokens:
                 self.tokens -= tokens
                 return 0.0
-            
+
             # Calculate wait time
             needed = tokens - self.tokens
             wait_time = needed / self.refill_rate
-            
+
             # Refill and acquire
             time.sleep(wait_time)
             self._refill()
@@ -81,7 +80,7 @@ class RateLimiter:
     """
     Rate limiter with per-provider and per-model buckets
     """
-    
+
     def __init__(
         self,
         default_rate: float = 10.0,  # requests per second
@@ -92,13 +91,13 @@ class RateLimiter:
         self.buckets: Dict[str, TokenBucket] = {}
         self.lock = threading.Lock()
         self.logger = get_logger("api_wrapper.rate_limiter")
-    
+
     def _get_bucket_key(self, provider: str, model: Optional[str] = None) -> str:
         """Generate bucket key for provider/model combination"""
         if model:
             return f"{provider}:{model}"
         return provider
-    
+
     def _get_or_create_bucket(
         self,
         provider: str,
@@ -108,7 +107,7 @@ class RateLimiter:
     ) -> TokenBucket:
         """Get or create a token bucket for provider/model"""
         key = self._get_bucket_key(provider, model)
-        
+
         with self.lock:
             if key not in self.buckets:
                 bucket_rate = rate or self.default_rate
@@ -121,7 +120,7 @@ class RateLimiter:
                     f"Created rate limiter bucket: {key} (rate={bucket_rate}/s, burst={bucket_burst})"
                 )
             return self.buckets[key]
-    
+
     def configure(
         self,
         provider: str,
@@ -131,7 +130,7 @@ class RateLimiter:
     ):
         """
         Configure rate limit for a provider/model
-        
+
         Args:
             provider: Provider name
             rate: Requests per second
@@ -140,14 +139,14 @@ class RateLimiter:
         """
         key = self._get_bucket_key(provider, model)
         burst = burst or (rate * 2)
-        
+
         with self.lock:
             self.buckets[key] = TokenBucket(
                 capacity=burst,
                 refill_rate=rate
             )
         self.logger.info(f"Configured rate limit for {key}: {rate}/s, burst={burst}")
-    
+
     def acquire(
         self,
         provider: str,
@@ -159,7 +158,7 @@ class RateLimiter:
     ) -> bool:
         """
         Acquire tokens from rate limiter
-        
+
         Args:
             provider: Provider name
             model: Optional model name
@@ -167,15 +166,15 @@ class RateLimiter:
             wait: If True, wait until tokens are available
             rate: Optional custom rate (creates temporary bucket)
             burst: Optional custom burst (creates temporary bucket)
-        
+
         Returns:
             True if tokens were acquired, False otherwise
-        
+
         Raises:
             RateLimitError if wait=False and tokens not available
         """
         bucket = self._get_or_create_bucket(provider, model, rate, burst)
-        
+
         if wait:
             wait_time = bucket.wait_for_tokens(tokens)
             if wait_time > 0:
@@ -195,11 +194,11 @@ class RateLimiter:
                     }
                 )
             return True
-    
+
     def reset(self, provider: Optional[str] = None, model: Optional[str] = None):
         """
         Reset rate limiter buckets
-        
+
         Args:
             provider: Optional provider to reset (resets all if None)
             model: Optional model to reset
@@ -225,4 +224,3 @@ def get_rate_limiter() -> RateLimiter:
     if _default_rate_limiter is None:
         _default_rate_limiter = RateLimiter()
     return _default_rate_limiter
-
