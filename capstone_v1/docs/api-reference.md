@@ -4,7 +4,7 @@ title: API Reference
 nav_order: 3
 ---
 
-# API Reference
+## API Reference
 
 This document provides the **comprehensive API reference** for the Chatbot API Wrapper, including object structure, method signatures, expected parameters, return types, example usages, error modes, and supported features/providers.
 
@@ -26,12 +26,14 @@ ChatbotWrapper(
 ```
 
 **Arguments:**
+
 - **huggingface_api_key** (*str, optional*): API key for HuggingFace. Required for HuggingFace hosted model calls.
 - **openai_api_key** (*str, optional*): API key for OpenAI. Required for OpenAI model calls.
 - **use_local_hf** (*bool*): If `True`, loads compatible HuggingFace models locally (requires compatible files and hardware).
 - **hf_device** (*str*): Device identifier for running local HF models (`"cpu"`, `"cuda"`, or `"auto"`).
 
 **Quick example:**
+
 ```python
 from api_wrapper import ChatbotWrapper
 
@@ -63,6 +65,7 @@ chat(
 ```
 
 **Parameters:**
+
 - **model** (*str*): Model name (e.g. `"gpt-3.5-turbo"`, `"mistralai/Mistral-7B-Instruct-v0.2"`)
 - **messages** (*str or List\[Dict\[str, str\]\]*): Message or list of dicts with `role` and `content`.
 - **provider** (*Provider or str*): `"huggingface"`, `"openai"`, or `Provider.AUTO` (default: `AUTO`; auto-detects from model name).
@@ -71,6 +74,7 @@ chat(
 - **\*\*kwargs**: Model/provider-specific arguments (see below).
 
 **Returns (`dict`):**
+
 - `response` (*str*): Generated reply.
 - `model` (*str*): Model name.
 - `provider` (*str*): Provider used.
@@ -79,6 +83,7 @@ chat(
 - `method` (*str, HuggingFace only*): `"api"` or `"local"` (present if using HuggingFace).
 
 **Basic example:**
+
 ```python
 response = wrapper.chat(
     model="gpt-3.5-turbo",
@@ -105,10 +110,12 @@ stream_chat(
     **kwargs
 ) -> Iterator[str]
 ```
+
 - Parameters: Same as `chat()`.
 - Returns: Iterator of response chunk strings (yielded as soon as produced).
 
 **Example:**
+
 ```python
 for chunk in wrapper.stream_chat(
     model="gpt-3.5-turbo",
@@ -127,10 +134,12 @@ List all available models from the configured providers.
 ```python
 list_models(provider: Optional[Union['Provider', str]] = None) -> Dict[str, List[str]]
 ```
+
 - **provider** (*str or Provider, optional*): `"huggingface"`, `"openai"`, or `None` (lists all).
 - **Returns** (`dict`): Keys `"huggingface"` and/or `"openai"` mapping to lists of available model names.
 
 **Example:**
+
 ```python
 models = wrapper.list_models()
 print("OpenAI models:", models["openai"])
@@ -147,18 +156,22 @@ get_model_info(model: str) -> Dict[str, Any]
 ```
 
 **Arguments:**
+
 - **model** (*str*): Name of the model.
 
 **Returns** (`dict`): Contains at least:
+
 - `name` (*str*): Model name.
 - `provider` (*str*): Provider name.
 - `description` (*str*): Description, if available.
 
 **Example:**
+
 ```python
 info = wrapper.get_model_info("gpt-3.5-turbo")
 print(info["description"])
 ```
+
 ---
 
 ### conversation()
@@ -175,10 +188,12 @@ conversation(
     **kwargs
 ) -> Conversation
 ```
+
 - Arguments as above (`model`, `system_prompt`, etc.).
 - Returns: `Conversation` instance (see below).
 
 **Example:**
+
 ```python
 conv = wrapper.conversation(
     model="gpt-3.5-turbo",
@@ -193,7 +208,7 @@ conv = wrapper.conversation(
 
 Tracks message history and encapsulates multi-turn chat.
 
-### Methods
+### Conversation Methods
 
 #### send(message: str) -> str
 
@@ -237,7 +252,7 @@ for msg in history:
 
 Direct interface for HuggingFace models (skip wrapper).
 
-### Initialization
+### HuggingFaceClient Initialization
 
 ```python
 HuggingFaceClient(
@@ -251,7 +266,7 @@ HuggingFaceClient(
 - **use_local** (*bool*): Use local models if `True`.
 - **device** (*str*): Device for local inference.
 
-### Methods
+### HuggingFaceClient Methods
 
 - **chat()**: Same as wrapper.
 - **stream_chat()**: Streaming responses.
@@ -263,7 +278,7 @@ HuggingFaceClient(
 
 Direct interface to OpenAI REST API.
 
-### Initialization
+### OpenAIClient Initialization
 
 ```python
 OpenAIClient(
@@ -271,10 +286,11 @@ OpenAIClient(
     base_url: Optional[str] = None  # Optional custom API endpoint
 )
 ```
+
 - **api_key** (*str, optional*): OpenAI API key.
 - **base_url** (*str, optional*): Custom API endpoint.
 
-### Methods
+### OpenAIClient Methods
 
 - **chat()**: Generate response.
 - **stream_chat()**: Streaming responses.
@@ -310,6 +326,7 @@ messages = "Hello, how are you?"
 ### List-of-Dicts
 
 Structured multi-turn conversation. Each dict **must** have keys `'role'` and `'content'`. Typical roles:
+
 - `"system"`: Initial instruction/context.
 - `"user"`: User input.
 - `"assistant"`: Model/assistant output.
@@ -330,10 +347,12 @@ messages = [
 All methods may raise Python exceptions for API, connection, or input errors.
 
 **Common exceptions:**
+
 - **ValueError**: Invalid parameters; e.g., missing required API key or invalid model/provider.
 - **Exception**: Covers other runtime or HTTP errors.
 
 **Example:**
+
 ```python
 try:
     response = wrapper.chat(model="invalid-model", messages="hi")
@@ -441,4 +460,3 @@ response = wrapper.chat(
 ---
 
 **Tip:** If you find a missing API feature, method, or parameter, please [open an issue or contribute](../CONTRIBUTING.md).
-

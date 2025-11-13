@@ -21,7 +21,29 @@ from .exceptions import (
     AuthenticationError,
     ModelNotFoundError,
     ProviderError,
+    ValidationError,
 )
+# Production features - optional imports with graceful fallback
+try:
+    from .security import (
+        validate_messages,
+        validate_model_name,
+        validate_temperature,
+        validate_max_tokens,
+    )
+    from .retry import RetryHandler
+    from .rate_limiter import get_rate_limiter
+    from .cache import get_cache
+    from .metrics import MetricsContext, get_metrics_collector
+    from .settings import get_settings
+    _PRODUCTION_FEATURES_AVAILABLE = True
+except ImportError:
+    _PRODUCTION_FEATURES_AVAILABLE = False
+    # Define fallback functions
+    def validate_messages(messages): return messages
+    def validate_model_name(model): return model
+    def validate_temperature(temp): return temp
+    def validate_max_tokens(tokens): return tokens
 
 
 class Provider(str, Enum):
@@ -42,6 +64,11 @@ class ChatbotWrapper:
         openai_api_key: Optional[str] = None,
         use_local_hf: bool = False,
         hf_device: str = "auto",
+        enable_retry: bool = True,
+        enable_rate_limiting: bool = True,
+        enable_caching: bool = True,
+        enable_validation: bool = True,
+        enable_metrics: bool = True,
     ):
         """
         Initialize the chatbot wrapper
@@ -51,10 +78,47 @@ class ChatbotWrapper:
             openai_api_key: OpenAI API key (optional)
             use_local_hf: Use local HuggingFace models instead of API
             hf_device: Device for local HuggingFace models ('cpu', 'cuda', 'auto')
+            enable_retry: Enable automatic retry on failures (default: True)
+            enable_rate_limiting: Enable rate limiting (default: True)
+            enable_caching: Enable response caching (default: True)
+            enable_validation: Enable input validation (default: True)
+            enable_metrics: Enable metrics collection (default: True)
         """
         self.logger = get_logger("api_wrapper.chatbot_wrapper")
         self.hf_client: Optional[HuggingFaceClient] = None
         self.openai_client: Optional[OpenAIClient] = None
+        
+        # Initialize production features
+        self.enable_retry = enable_retry and _PRODUCTION_FEATURES_AVAILABLE
+        self.enable_rate_limiting = enable_rate_limiting and _PRODUCTION_FEATURES_AVAILABLE
+        self.enable_caching = enable_caching and _PRODUCTION_FEATURES_AVAILABLE
+        self.enable_validation = enable_validation and _PRODUCTION_FEATURES_AVAILABLE
+        self.enable_metrics = enable_metrics and _PRODUCTION_FEATURES_AVAILABLE
+        
+        if _PRODUCTION_FEATURES_AVAILABLE:
+            try:
+                settings = get_settings()
+                self.retry_handler = RetryHandler(
+                    max_retries=settings.max_retries,
+                    initial_delay=settings.initial_retry_delay,
+                    max_delay=settings.max_retry_delay,
+                    exponential_base=settings.retry_exponential_base,
+                ) if self.enable_retry else None
+                self.rate_limiter = get_rate_limiter() if self.enable_rate_limiting else None
+                self.cache = get_cache() if self.enable_caching else None
+                self.metrics_collector = get_metrics_collector() if self.enable_metrics else None
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize some production features: {e}")
+                self.retry_handler = None
+                self.rate_limiter = None
+                self.cache = None
+                self.metrics_collector = None
+        else:
+            self.retry_handler = None
+            self.rate_limiter = None
+            self.cache = None
+            self.metrics_collector = None
+            self.logger.info("Production features not available. Install optional dependencies for full functionality.")
 
         # Initialize HuggingFace client if key is provided or local mode
         if huggingface_api_key or use_local_hf:
@@ -133,22 +197,65 @@ class ChatbotWrapper:
             ... )
             >>> print(response['response'])
         """
+        # Input validation
+        if self.enable_validation:
+            try:
+                model = validate_model_name(model)
+                messages = validate_messages(messages)
+                temperature = validate_temperature(temperature)
+                max_tokens = validate_max_tokens(max_tokens)
+            except ValidationError as e:
+                self.logger.error(f"Validation error: {e}")
+                raise
+        
         # Determine provider
         if provider == Provider.AUTO or provider == "auto":
             provider = self._detect_provider(model)
         else:
             provider = Provider(provider)
-
-        # Route to appropriate client
-        if provider == Provider.HUGGINGFACE:
-            if not self.hf_client:
-                raise AuthenticationError(
-                    "HuggingFace client not initialized. Provide huggingface_api_key or set use_local_hf=True."
+        
+        provider_str = provider.value if isinstance(provider, Provider) else str(provider)
+        
+        # Check cache
+        if self.enable_caching and self.cache:
+            cache_key = {
+                "provider": provider_str,
+                "model": model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                **kwargs
+            }
+            cached_response = self.cache.get(
+                provider=provider_str,
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                **kwargs
+            )
+            if cached_response:
+                self.logger.debug(f"Cache hit for {provider_str}:{model}")
+                return cached_response
+        
+        # Rate limiting
+        if self.enable_rate_limiting and self.rate_limiter:
+            try:
+                self.rate_limiter.acquire(
+                    provider=provider_str,
+                    model=model,
+                    wait=True  # Wait for rate limit instead of failing
                 )
-            with RequestLogger(
-                self.logger, "chat", model, "huggingface",
-                temperature=temperature, max_tokens=max_tokens
-            ):
+            except Exception as e:
+                self.logger.warning(f"Rate limiting error (continuing anyway): {e}")
+        
+        # Define the actual API call function
+        def _make_api_call() -> Dict[str, Any]:
+            if provider == Provider.HUGGINGFACE:
+                if not self.hf_client:
+                    raise AuthenticationError(
+                        "HuggingFace client not initialized. Provide huggingface_api_key or set use_local_hf=True."
+                    )
                 return self.hf_client.chat(
                     model_id=model,
                     messages=messages,
@@ -156,15 +263,11 @@ class ChatbotWrapper:
                     max_tokens=max_tokens,
                     **kwargs,
                 )
-        elif provider == Provider.OPENAI:
-            if not self.openai_client:
-                raise AuthenticationError(
-                    "OpenAI client not initialized. Provide openai_api_key."
-                )
-            with RequestLogger(
-                self.logger, "chat", model, "openai",
-                temperature=temperature, max_tokens=max_tokens
-            ):
+            elif provider == Provider.OPENAI:
+                if not self.openai_client:
+                    raise AuthenticationError(
+                        "OpenAI client not initialized. Provide openai_api_key."
+                    )
                 return self.openai_client.chat(
                     model=model,
                     messages=messages,
@@ -172,8 +275,63 @@ class ChatbotWrapper:
                     max_tokens=max_tokens,
                     **kwargs,
                 )
-        else:
-            raise ProviderError(provider, f"Unknown provider: {provider}")
+            else:
+                raise ProviderError(provider, f"Unknown provider: {provider}")
+        
+        # Execute with retry, metrics, and logging
+        try:
+            # Metrics context
+            metrics_ctx = None
+            if self.enable_metrics and self.metrics_collector:
+                metrics_ctx = MetricsContext(
+                    self.metrics_collector,
+                    provider=provider_str,
+                    model=model
+                )
+                metrics_ctx.__enter__()
+            
+            # Request logging
+            with RequestLogger(
+                self.logger, "chat", model, provider_str,
+                temperature=temperature, max_tokens=max_tokens
+            ):
+                # Execute with retry if enabled
+                if self.enable_retry and self.retry_handler:
+                    response = self.retry_handler.execute(_make_api_call)
+                else:
+                    response = _make_api_call()
+                
+                # Update metrics
+                if metrics_ctx:
+                    if "usage" in response and isinstance(response["usage"], dict):
+                        tokens = response["usage"].get("total_tokens")
+                        if tokens:
+                            metrics_ctx.set_tokens(tokens)
+                    if "response" in response:
+                        metrics_ctx.set_response_length(len(response["response"]))
+            
+            # Cache the response
+            if self.enable_caching and self.cache:
+                self.cache.set(
+                    provider=provider_str,
+                    model=model,
+                    messages=messages,
+                    response=response,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    **kwargs
+                )
+            
+            return response
+            
+        except Exception as e:
+            # Update metrics on error
+            if metrics_ctx:
+                metrics_ctx.error_type = type(e).__name__
+            raise
+        finally:
+            if metrics_ctx:
+                metrics_ctx.__exit__(None, None, None)
 
     def stream_chat(
         self,
@@ -206,11 +364,34 @@ class ChatbotWrapper:
             ... ):
             ...     print(chunk, end='', flush=True)
         """
+        # Input validation
+        if self.enable_validation:
+            try:
+                model = validate_model_name(model)
+                messages = validate_messages(messages)
+                temperature = validate_temperature(temperature)
+                max_tokens = validate_max_tokens(max_tokens)
+            except ValidationError as e:
+                self.logger.error(f"Validation error: {e}")
+                raise
+        
         # Determine provider
         if provider == Provider.AUTO or provider == "auto":
             provider = self._detect_provider(model)
         else:
             provider = Provider(provider)
+        
+        # Rate limiting (for streaming, we still apply rate limiting)
+        provider_str = provider.value if isinstance(provider, Provider) else str(provider)
+        if self.enable_rate_limiting and self.rate_limiter:
+            try:
+                self.rate_limiter.acquire(
+                    provider=provider_str,
+                    model=model,
+                    wait=True
+                )
+            except Exception as e:
+                self.logger.warning(f"Rate limiting error (continuing anyway): {e}")
 
         # Route to appropriate client
         if provider == Provider.HUGGINGFACE:
