@@ -10,7 +10,11 @@ from functools import wraps
 from collections import OrderedDict
 
 try:
-    from cachetools import TTLCache, LRUCache
+    try:
+        from cachetools import TTLCache, LRUCache
+    except ImportError:
+        TTLCache = None
+        LRUCache = None
     CACHETOOLS_AVAILABLE = True
 except ImportError:
     CACHETOOLS_AVAILABLE = False

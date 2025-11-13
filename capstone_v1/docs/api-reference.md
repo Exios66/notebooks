@@ -6,11 +6,13 @@ nav_order: 3
 
 # API Reference
 
-Complete API documentation for the Chatbot API Wrapper.
+This document provides the **comprehensive API reference** for the Chatbot API Wrapper, including object structure, method signatures, expected parameters, return types, example usages, error modes, and supported features/providers.
+
+---
 
 ## ChatbotWrapper
 
-Main wrapper class for chatbot interactions.
+Primary wrapper class for working with both HuggingFace and OpenAI models in a unified fashion.
 
 ### Initialization
 
@@ -23,21 +25,21 @@ ChatbotWrapper(
 )
 ```
 
-**Parameters:**
+**Arguments:**
+- **huggingface_api_key** (*str, optional*): API key for HuggingFace. Required for HuggingFace hosted model calls.
+- **openai_api_key** (*str, optional*): API key for OpenAI. Required for OpenAI model calls.
+- **use_local_hf** (*bool*): If `True`, loads compatible HuggingFace models locally (requires compatible files and hardware).
+- **hf_device** (*str*): Device identifier for running local HF models (`"cpu"`, `"cuda"`, or `"auto"`).
 
-- `huggingface_api_key` (str, optional): HuggingFace API key
-- `openai_api_key` (str, optional): OpenAI API key
-- `use_local_hf` (bool): Use local HuggingFace models instead of API
-- `hf_device` (str): Device for local models ('cpu', 'cuda', 'auto')
-
-**Example:**
-
+**Quick example:**
 ```python
+from api_wrapper import ChatbotWrapper
+
 wrapper = ChatbotWrapper(
-    openai_api_key="sk-...",
     huggingface_api_key="hf_...",
-    use_local_hf=False,
-    hf_device="auto"
+    openai_api_key="sk-...",
+    use_local_hf=True,   # True if you want to use local HuggingFace models (must be downloaded)
+    hf_device="cuda"     # "cuda", "cpu", or "auto"
 )
 ```
 
@@ -47,13 +49,13 @@ wrapper = ChatbotWrapper(
 
 ### chat()
 
-Generate a chat response.
+Return a single response from a given model.
 
 ```python
 chat(
     model: str,
     messages: Union[str, List[Dict[str, str]]],
-    provider: Union[Provider, str] = Provider.AUTO,
+    provider: Union['Provider', str] = Provider.AUTO,
     temperature: float = 0.7,
     max_tokens: int = 512,
     **kwargs
@@ -61,28 +63,22 @@ chat(
 ```
 
 **Parameters:**
+- **model** (*str*): Model name (e.g. `"gpt-3.5-turbo"`, `"mistralai/Mistral-7B-Instruct-v0.2"`)
+- **messages** (*str or List\[Dict\[str, str\]\]*): Message or list of dicts with `role` and `content`.
+- **provider** (*Provider or str*): `"huggingface"`, `"openai"`, or `Provider.AUTO` (default: `AUTO`; auto-detects from model name).
+- **temperature** (*float*): Sampling temperature [0.0, 2.0].
+- **max_tokens** (*int*): Max tokens to generate.
+- **\*\*kwargs**: Model/provider-specific arguments (see below).
 
-- `model` (str): Model identifier (e.g., 'gpt-3.5-turbo', 'mistralai/Mistral-7B-Instruct-v0.2')
-- `messages` (str | List[Dict]): Message string or list of message dicts with 'role' and 'content'
-- `provider` (str): Provider to use ('huggingface', 'openai', 'auto')
-- `temperature` (float): Sampling temperature (0.0 to 2.0)
-- `max_tokens` (int): Maximum tokens to generate
-- `**kwargs`: Additional provider-specific parameters
+**Returns (`dict`):**
+- `response` (*str*): Generated reply.
+- `model` (*str*): Model name.
+- `provider` (*str*): Provider used.
+- `usage` (*dict, OpenAI only*): Token usage statistics (if available).
+- `finish_reason` (*str, OpenAI only*): Why the generation stopped (if available).
+- `method` (*str, HuggingFace only*): `"api"` or `"local"` (present if using HuggingFace).
 
-**Returns:**
-
-```python
-{
-    "response": str,           # Generated response text
-    "model": str,              # Model identifier
-    "provider": str,           # Provider name
-    "usage": dict,             # Token usage (OpenAI only)
-    "finish_reason": str,      # Finish reason (OpenAI only)
-}
-```
-
-**Example:**
-
+**Basic example:**
 ```python
 response = wrapper.chat(
     model="gpt-3.5-turbo",
@@ -90,136 +86,104 @@ response = wrapper.chat(
     temperature=0.7,
     max_tokens=100
 )
+print(response["response"])
 ```
 
 ---
 
 ### stream_chat()
 
-Stream chat responses in real-time.
+**Stream** the generation output token-by-token or chunk-by-chunk.
 
 ```python
 stream_chat(
     model: str,
     messages: Union[str, List[Dict[str, str]]],
-    provider: Union[Provider, str] = Provider.AUTO,
+    provider: Union['Provider', str] = Provider.AUTO,
     temperature: float = 0.7,
     max_tokens: int = 512,
     **kwargs
 ) -> Iterator[str]
 ```
-
-**Parameters:** Same as `chat()`
-
-**Returns:** Iterator yielding response chunks (str)
+- Parameters: Same as `chat()`.
+- Returns: Iterator of response chunk strings (yielded as soon as produced).
 
 **Example:**
-
 ```python
 for chunk in wrapper.stream_chat(
     model="gpt-3.5-turbo",
     messages="Tell me a story"
 ):
     print(chunk, end='', flush=True)
+print("[DONE]")
 ```
 
 ---
 
 ### list_models()
 
-List available models for specified provider(s).
+List all available models from the configured providers.
 
 ```python
-list_models(provider: Optional[Union[Provider, str]] = None) -> Dict[str, List[str]]
+list_models(provider: Optional[Union['Provider', str]] = None) -> Dict[str, List[str]]
 ```
-
-**Parameters:**
-
-- `provider` (str, optional): Provider to list ('huggingface', 'openai', or None for all)
-
-**Returns:**
-
-```python
-{
-    "huggingface": ["model1", "model2", ...],
-    "openai": ["gpt-4", "gpt-3.5-turbo", ...]
-}
-```
+- **provider** (*str or Provider, optional*): `"huggingface"`, `"openai"`, or `None` (lists all).
+- **Returns** (`dict`): Keys `"huggingface"` and/or `"openai"` mapping to lists of available model names.
 
 **Example:**
-
 ```python
 models = wrapper.list_models()
-print(models["openai"])
+print("OpenAI models:", models["openai"])
 ```
 
 ---
 
 ### get_model_info()
 
-Get information about a specific model.
+Return full metadata for a specified model, if available.
 
 ```python
 get_model_info(model: str) -> Dict[str, Any]
 ```
 
-**Parameters:**
+**Arguments:**
+- **model** (*str*): Name of the model.
 
-- `model` (str): Model identifier
-
-**Returns:**
-
-```python
-{
-    "name": str,
-    "provider": str,
-    "description": str,
-    ...
-}
-```
+**Returns** (`dict`): Contains at least:
+- `name` (*str*): Model name.
+- `provider` (*str*): Provider name.
+- `description` (*str*): Description, if available.
 
 **Example:**
-
 ```python
 info = wrapper.get_model_info("gpt-3.5-turbo")
 print(info["description"])
 ```
-
 ---
 
 ### conversation()
 
-Create a conversation context for multi-turn interactions.
+Start a persistent multi-turn conversation context.
 
 ```python
 conversation(
     model: str,
     system_prompt: Optional[str] = None,
-    provider: Union[Provider, str] = Provider.AUTO,
+    provider: Union['Provider', str] = Provider.AUTO,
     temperature: float = 0.7,
     max_tokens: int = 512,
     **kwargs
 ) -> Conversation
 ```
-
-**Parameters:**
-
-- `model` (str): Model identifier
-- `system_prompt` (str, optional): System prompt to set context
-- `provider` (str): Provider to use
-- `temperature` (float): Sampling temperature
-- `max_tokens` (int): Maximum tokens per response
-- `**kwargs`: Additional parameters
-
-**Returns:** `Conversation` object
+- Arguments as above (`model`, `system_prompt`, etc.).
+- Returns: `Conversation` instance (see below).
 
 **Example:**
-
 ```python
 conv = wrapper.conversation(
     model="gpt-3.5-turbo",
     system_prompt="You are a helpful assistant.",
-    temperature=0.7
+    temperature=0.7,
 )
 ```
 
@@ -227,76 +191,39 @@ conv = wrapper.conversation(
 
 ## Conversation Class
 
-Manages multi-turn conversation context.
+Tracks message history and encapsulates multi-turn chat.
 
 ### Methods
 
-#### send()
+#### send(message: str) -> str
 
-Send a message and get response.
-
-```python
-send(message: str) -> str
-```
-
-**Parameters:**
-
-- `message` (str): User message
-
-**Returns:** Assistant response (str)
-
-**Example:**
+Send a message and append to the conversation. Returns next assistant reply.
 
 ```python
 response = conv.send("What is Python?")
+print(response)
 ```
 
-#### stream_send()
+#### stream_send(message: str) -> Iterator[str]
 
-Send a message and stream response.
-
-```python
-stream_send(message: str) -> Iterator[str]
-```
-
-**Parameters:**
-
-- `message` (str): User message
-
-**Returns:** Iterator yielding response chunks
-
-**Example:**
+Send a message and **stream** the assistant response.
 
 ```python
-for chunk in conv.stream_send("Tell me a story"):
+for chunk in conv.stream_send("Summarize the Industrial Revolution."):
     print(chunk, end='', flush=True)
 ```
 
-#### reset()
+#### reset() -> None
 
-Reset conversation history (keeps system prompt).
-
-```python
-reset() -> None
-```
-
-**Example:**
+Reset conversation **history** (retains system prompt).
 
 ```python
 conv.reset()
 ```
 
-#### get_history()
+#### get_history() -> List[Dict[str, str]]
 
-Get conversation history.
-
-```python
-get_history() -> List[Dict[str, str]]
-```
-
-**Returns:** List of message dictionaries
-
-**Example:**
+Retrieve full conversation history as a list of dicts with `"role"` and `"content"`.
 
 ```python
 history = conv.get_history()
@@ -308,7 +235,7 @@ for msg in history:
 
 ## HuggingFaceClient
 
-Direct client for HuggingFace models.
+Direct interface for HuggingFace models (skip wrapper).
 
 ### Initialization
 
@@ -320,63 +247,72 @@ HuggingFaceClient(
 )
 ```
 
+- **api_key** (*str, optional*): HuggingFace API token.
+- **use_local** (*bool*): Use local models if `True`.
+- **device** (*str*): Device for local inference.
+
 ### Methods
 
-- `chat()`: Generate response (same interface as wrapper)
-- `stream_chat()`: Stream responses
-- `list_available_models()`: List configured models
+- **chat()**: Same as wrapper.
+- **stream_chat()**: Streaming responses.
+- **list_available_models()**: List loaded/configured models.
 
 ---
 
 ## OpenAIClient
 
-Direct client for OpenAI models.
+Direct interface to OpenAI REST API.
 
 ### Initialization
 
 ```python
 OpenAIClient(
     api_key: Optional[str] = None,
-    base_url: Optional[str] = None
+    base_url: Optional[str] = None  # Optional custom API endpoint
 )
 ```
+- **api_key** (*str, optional*): OpenAI API key.
+- **base_url** (*str, optional*): Custom API endpoint.
 
 ### Methods
 
-- `chat()`: Generate response
-- `stream_chat()`: Stream responses
-- `list_available_models()`: List OpenAI models
-- `get_model_info()`: Get model information
+- **chat()**: Generate response.
+- **stream_chat()**: Streaming responses.
+- **list_available_models()**: List accessible models for API key.
+- **get_model_info()**: Return metadata for a model.
 
 ---
 
 ## Provider Enum
 
-Provider selection enum.
+Provider identifier used for dispatching requests.
 
 ```python
 from api_wrapper import Provider
 
-Provider.HUGGINGFACE  # HuggingFace provider
-Provider.OPENAI       # OpenAI provider
-Provider.AUTO         # Auto-detect from model name
+Provider.HUGGINGFACE  # (or "huggingface")
+Provider.OPENAI       # (or "openai")
+Provider.AUTO         # (auto-detect from model name)
 ```
 
 ---
 
 ## Message Format
 
-### String Format
+### String
 
-Simple string message:
+Just a single prompt message:
 
 ```python
 messages = "Hello, how are you?"
 ```
 
-### List Format
+### List-of-Dicts
 
-List of message dictionaries:
+Structured multi-turn conversation. Each dict **must** have keys `'role'` and `'content'`. Typical roles:
+- `"system"`: Initial instruction/context.
+- `"user"`: User input.
+- `"assistant"`: Model/assistant output.
 
 ```python
 messages = [
@@ -387,53 +323,55 @@ messages = [
 ]
 ```
 
-**Roles:**
-
-- `system`: System prompt (optional, typically first message)
-- `user`: User messages
-- `assistant`: Assistant responses (for context)
-
 ---
 
 ## Error Handling
 
-### Common Exceptions
+All methods may raise Python exceptions for API, connection, or input errors.
 
-**ValueError**: Invalid parameters or missing API keys
+**Common exceptions:**
+- **ValueError**: Invalid parameters; e.g., missing required API key or invalid model/provider.
+- **Exception**: Covers other runtime or HTTP errors.
 
+**Example:**
 ```python
 try:
-    wrapper.chat(model="invalid", messages="test")
+    response = wrapper.chat(model="invalid-model", messages="hi")
 except ValueError as e:
-    print(f"Error: {e}")
-```
-
-**Exception**: API request failures
-
-```python
-try:
-    response = wrapper.chat(model="gpt-3.5-turbo", messages="test")
-except Exception as e:
-    print(f"API Error: {e}")
+    print("Chatbot error:", e)
+except Exception as err:
+    print("API failure:", err)
 ```
 
 ---
 
 ## Provider-Specific Parameters
 
-### OpenAI Parameters
+Both OpenAI and HuggingFace support model-specific tuning parameters (passable as kwargs).
+
+### OpenAI (add as kwargs)
+
+- **frequency_penalty**: *float*, [-2.0, 2.0]
+- **presence_penalty**: *float*, [-2.0, 2.0]
+- **top_p**: *float*, [0.0, 1.0]
+- **other OpenAI API parameters**...
 
 ```python
 response = wrapper.chat(
     model="gpt-3.5-turbo",
     messages="test",
-    frequency_penalty=0.0,  # -2.0 to 2.0
-    presence_penalty=0.0,   # -2.0 to 2.0
+    frequency_penalty=0.0,
+    presence_penalty=0.0,
     top_p=0.9,
 )
 ```
 
-### HuggingFace Parameters
+### HuggingFace (add as kwargs)
+
+- **top_p**: *float*
+- **top_k**: *int*
+- **repetition_penalty**: *float*
+- **other supported HF API/generation parameters**...
 
 ```python
 response = wrapper.chat(
@@ -451,27 +389,29 @@ response = wrapper.chat(
 
 ### OpenAI Models
 
-- `gpt-4`: Most capable model
-- `gpt-4-turbo`: Faster GPT-4 variant
-- `gpt-4-turbo-preview`: Preview version
-- `gpt-3.5-turbo`: Fast and efficient
-- `gpt-3.5-turbo-16k`: Extended context
+- `gpt-4`
+- `gpt-4-turbo` (lower cost/faster)
+- `gpt-4-turbo-preview`
+- `gpt-3.5-turbo`
+- `gpt-3.5-turbo-16k` (extended context window)
 
-### HuggingFace Models
+### HuggingFace Models (examples; the actual list may be larger/dynamic)
 
-- `meta-llama/Llama-2-7b-chat-hf`: Llama 2 7B
-- `meta-llama/Llama-2-13b-chat-hf`: Llama 2 13B
-- `meta-llama/Meta-Llama-3-8B-Instruct`: Llama 3 8B
-- `mistralai/Mistral-7B-Instruct-v0.2`: Mistral 7B
-- `microsoft/DialoGPT-large`: DialoGPT
-- `google/flan-t5-xxl`: FLAN-T5
-- `HuggingFaceH4/zephyr-7b-beta`: Zephyr 7B
+- `meta-llama/Llama-2-7b-chat-hf` (Llama 2 7B)
+- `meta-llama/Llama-2-13b-chat-hf` (Llama 2 13B)
+- `meta-llama/Meta-Llama-3-8B-Instruct` (Llama 3 8B)
+- `mistralai/Mistral-7B-Instruct-v0.2` (Mistral 7B)
+- `microsoft/DialoGPT-large`
+- `google/flan-t5-xxl`
+- `HuggingFaceH4/zephyr-7b-beta`
+
+*(For a full up-to-date list, use `wrapper.list_models()`.)*
 
 ---
 
 ## Return Value Examples
 
-### OpenAI Response
+### OpenAI
 
 ```python
 {
@@ -487,13 +427,18 @@ response = wrapper.chat(
 }
 ```
 
-### HuggingFace Response
+### HuggingFace
 
 ```python
 {
     "response": "Hello! How can I help you?",
     "model": "mistralai/Mistral-7B-Instruct-v0.2",
     "provider": "huggingface",
-    "method": "api"  # or "local"
+    "method": "api"  # Either "api" or "local"
 }
 ```
+
+---
+
+**Tip:** If you find a missing API feature, method, or parameter, please [open an issue or contribute](../CONTRIBUTING.md).
+

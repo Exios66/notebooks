@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2024-11-12
 
 ### Added
+
+- Integrated Prometheus-compatible metrics collection and export
+- Added provider and model statistics (requests, errors, tokens, response lengths)
+- Implemented health check endpoints with dependency checks
+- Enhanced documentation for production, security, and troubleshooting
+- Improved CI/CD with security scans (Safety, Bandit), coverage reports, and publishing workflow
+- Provided deployment and monitoring examples (Docker, Kubernetes, Prometheus/Grafana)
+- Added example scripts for metrics and health checks
+
 - Initial release of Chatbot API Wrapper
 - Support for OpenAI and HuggingFace models
 - Unified interface for multiple providers
@@ -27,14 +36,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete documentation
 
 ### Security
+
 - Input validation and sanitization
 - API key masking in logs
 - Secure credential handling
 - Request size limits
 
 ### Performance
+
 - Response caching
 - Connection pooling
 - Efficient streaming
 - Memory optimization
-
