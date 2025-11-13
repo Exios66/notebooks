@@ -10,7 +10,7 @@ This guide explains how to deploy the documentation site to GitHub Pages.
 
 1. **Push to GitHub:**
 
-   ```bash
+   ```text
    git add .
    git commit -m "Add documentation"
    git push origin main
@@ -70,7 +70,7 @@ To use a custom domain:
 
 1. Add `CNAME` file in `docs/` folder:
 
-   ```
+   ```text
    yourdomain.com
    ```
 
@@ -99,17 +99,12 @@ To use a custom domain:
 
 ## File Structure
 
-```bash
+```text
 docs/
-├── _config.yml          # Jekyll configuration
-├── _layouts/            # HTML layouts
-├── index.md            # Home page
-├── getting-started.md   # Setup guide
-├── api-reference.md    # API docs
-├── api-endpoints.md    # Endpoints reference
-├── examples.md         # Code examples
-├── STARTUP_GUIDE.md    # Complete startup guide
-├── chatbot-interface.html  # Interactive UI
-├── Gemfile             # Ruby dependencies
-└── README.md           # Documentation README
+├── _config.yml           # Jekyll configuration
+├── _layouts/             # HTML layouts
+├── index.md              # Home page
+├── STARTUP_GUIDE.md      # Complete startup guide
+├── Gemfile               # Ruby dependencies
+└── README.md             # Documentation README
 ```

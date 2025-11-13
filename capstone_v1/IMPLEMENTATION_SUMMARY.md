@@ -130,7 +130,7 @@ status, code = checker.get_http_response('health')
 
 ## File Structure
 
-```
+```bash
 capstone_v1/
 ├── api_wrapper/
 │   ├── metrics.py          # Enhanced with Prometheus/StatsD export

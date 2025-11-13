@@ -2,8 +2,51 @@
 Example demonstrating metrics collection and health checks
 """
 
-from api_wrapper.metrics import get_metrics_collector, MetricsContext
-from api_wrapper.health import get_health_checker
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import api_wrapper modules directly
+parent_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(parent_dir))
+
+# Import directly from module files to avoid triggering __init__.py
+# which would import chatbot_wrapper -> huggingface_client -> transformers
+try:
+    # Import metrics module directly
+    import importlib.util
+    metrics_spec = importlib.util.spec_from_file_location(
+        "api_wrapper.metrics",
+        parent_dir / "api_wrapper" / "metrics.py"
+    )
+    metrics_module = importlib.util.module_from_spec(metrics_spec)
+    metrics_spec.loader.exec_module(metrics_module)
+    
+    health_spec = importlib.util.spec_from_file_location(
+        "api_wrapper.health",
+        parent_dir / "api_wrapper" / "health.py"
+    )
+    health_module = importlib.util.module_from_spec(health_spec)
+    health_spec.loader.exec_module(health_module)
+    
+    # Get the functions we need
+    get_metrics_collector = metrics_module.get_metrics_collector
+    MetricsContext = metrics_module.MetricsContext
+    get_health_checker = health_module.get_health_checker
+    
+except Exception as e:
+    # Fallback to normal import if direct import fails
+    try:
+        from api_wrapper.metrics import get_metrics_collector, MetricsContext
+        from api_wrapper.health import get_health_checker
+    except ImportError as import_err:
+        print(f"⚠️  Error: Could not import api_wrapper modules")
+        print(f"   Direct import error: {e}")
+        print(f"   Normal import error: {import_err}")
+        print("\n💡 Try installing dependencies:")
+        print("   pip install scipy scikit-learn")
+        print("   Or: pip install -r requirements.txt")
+        sys.exit(1)
+
 import time
 
 
