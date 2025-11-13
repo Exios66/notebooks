@@ -5,6 +5,7 @@ This directory contains comprehensive information and endpoints for publicly sou
 ## Overview
 
 The models registry provides detailed information about each model including:
+
 - **Full model identifiers** and names
 - **API endpoints** with authentication requirements
 - **Access methods** (API, local, or both)
@@ -75,6 +76,7 @@ with open("models_registry.json", "w") as f:
 ### By Provider
 
 #### HuggingFace Models
+
 - **Llama Models**: Llama 2 (7B, 13B), Llama 3 (8B)
 - **Mistral Models**: Mistral 7B Instruct, Mixtral 8x7B Instruct
 - **Google Models**: FLAN-T5 XXL, Gemma 7B Instruct
@@ -83,6 +85,7 @@ with open("models_registry.json", "w") as f:
 - **Other**: Qwen 2.5 7B Instruct
 
 #### OpenAI Models
+
 - **GPT-4 Series**: GPT-4, GPT-4 Turbo, GPT-4 Turbo Preview, GPT-4o, GPT-4o Mini
 - **GPT-3.5 Series**: GPT-3.5 Turbo, GPT-3.5 Turbo 16K
 
@@ -117,12 +120,14 @@ model = AutoModelForCausalLM.from_pretrained(model_id)
 ## API Keys
 
 ### HuggingFace
+
 1. Create an account at [huggingface.co](https://huggingface.co)
 2. Generate an API token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
 3. Set environment variable: `export HUGGINGFACE_API_KEY="your-token"`
 4. For gated models (e.g., Llama), request access on the model page
 
 ### OpenAI
+
 1. Create an account at [platform.openai.com](https://platform.openai.com)
 2. Generate an API key at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 3. Set environment variable: `export OPENAI_API_KEY="your-key"`
@@ -131,11 +136,13 @@ model = AutoModelForCausalLM.from_pretrained(model_id)
 ## Free Tier Information
 
 ### HuggingFace Free Tier
+
 - **Rate Limit**: 30 requests/minute (varies by model)
 - **No credit card required**
 - **Gated models**: Require account approval
 
 ### OpenAI
+
 - **No free tier** (requires paid API access)
 - **Pricing**: Pay-per-use based on tokens
 - **Free credits**: May be available for new accounts
@@ -143,38 +150,46 @@ model = AutoModelForCausalLM.from_pretrained(model_id)
 ## Model Selection Guide
 
 ### For Conversational AI
+
 - **Recommended**: `gpt-3.5-turbo`, `meta-llama/Llama-2-7b-chat-hf`, `microsoft/DialoGPT-large`
 - **Best for**: Chatbots, customer support, general Q&A
 
 ### For Instruction Following
+
 - **Recommended**: `mistralai/Mistral-7B-Instruct-v0.2`, `meta-llama/Meta-Llama-3-8B-Instruct`, `HuggingFaceH4/zephyr-7b-beta`
 - **Best for**: Task completion, code generation, structured outputs
 
 ### For Complex Reasoning
+
 - **Recommended**: `gpt-4`, `gpt-4-turbo`, `mistralai/Mixtral-8x7B-Instruct-v0.1`
 - **Best for**: Advanced problem solving, analysis, synthesis
 
 ### For Cost-Effective Applications
+
 - **Recommended**: `gpt-3.5-turbo`, `gpt-4o-mini`, `meta-llama/Llama-2-7b-chat-hf` (local)
 - **Best for**: High-volume applications, prototyping
 
 ### For Long Context
+
 - **Recommended**: `gpt-4-turbo`, `gpt-4o`, `mistralai/Mixtral-8x7B-Instruct-v0.1`, `Qwen/Qwen2.5-7B-Instruct`
 - **Best for**: Document analysis, long conversations, code review
 
 ### For Local Deployment
+
 - **Recommended**: `meta-llama/Llama-2-7b-chat-hf`, `mistralai/Mistral-7B-Instruct-v0.2`, `microsoft/DialoGPT-large`
 - **Best for**: Privacy-sensitive applications, offline use, cost control
 
 ## Licensing
 
 ### Open Source Licenses
+
 - **Apache 2.0**: Mistral, FLAN-T5, Gemma, Qwen, Zephyr
 - **MIT**: DialoGPT, Zephyr
 - **Llama 2 Community License**: Llama 2 models (requires Meta approval)
 - **Llama 3 Community License**: Llama 3 models
 
 ### Proprietary
+
 - **OpenAI Models**: Proprietary, requires API access
 
 Always review the specific license terms before using a model in production.
@@ -182,12 +197,14 @@ Always review the specific license terms before using a model in production.
 ## Model Specifications
 
 ### Parameter Counts
+
 - **Small (< 1B)**: DialoGPT Large (774M)
 - **Medium (1-10B)**: Llama 2 7B, Mistral 7B, Llama 3 8B, Gemma 7B, Qwen 2.5 7B
 - **Large (10-50B)**: Llama 2 13B, FLAN-T5 XXL (11B), Mixtral 8x7B (47B effective)
 - **Very Large (> 50B)**: GPT-4, GPT-4 Turbo (exact counts not disclosed)
 
 ### Context Windows
+
 - **Small (512-1K)**: FLAN-T5 XXL (512), DialoGPT Large (1K)
 - **Medium (4K-8K)**: Llama 2 (4K), Mistral 7B (8K), Gemma 7B (8K)
 - **Large (16K-32K)**: GPT-3.5 Turbo (16K), Mixtral 8x7B (32K), Qwen 2.5 7B (32K)
@@ -258,6 +275,6 @@ Example:
 ## Support
 
 For issues or questions about specific models:
+
 - **HuggingFace**: Check model card and discussions on HuggingFace Hub
 - **OpenAI**: See [OpenAI Documentation](https://platform.openai.com/docs) and [Support](https://help.openai.com)
-

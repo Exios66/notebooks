@@ -16,7 +16,6 @@ from .config import (
 )
 from .logger import get_logger, RequestLogger
 from .exceptions import (
-    ChatbotAPIError,
     APIError,
     AuthenticationError,
     ModelNotFoundError,
@@ -424,6 +423,7 @@ class ChatbotWrapper:
     def list_models(self, provider: Optional[Union[Provider, str]] = None) -> Dict[str, List[str]]:
         """
         List available models for the specified provider(s)
+        Uses the comprehensive models registry if available
 
         Args:
             provider: Provider to list models for ('huggingface', 'openai', or None for all)
@@ -431,6 +431,26 @@ class ChatbotWrapper:
         Returns:
             Dictionary mapping provider names to lists of model identifiers
         """
+        # Try to use models registry first
+        try:
+            from models.models_registry import list_models_by_provider as registry_list
+            registry_models = {}
+            
+            if provider is None or provider == Provider.HUGGINGFACE or provider == "huggingface":
+                hf_models = registry_list("huggingface")
+                registry_models["huggingface"] = [m.model_id for m in hf_models]
+            
+            if provider is None or provider == Provider.OPENAI or provider == "openai":
+                openai_models = registry_list("openai")
+                registry_models["openai"] = [m.model_id for m in openai_models]
+            
+            if registry_models:
+                return registry_models
+        except ImportError:
+            # Models registry not available, fall back to basic config
+            pass
+        
+        # Fallback to basic config
         models = {}
 
         if provider is None or provider == Provider.HUGGINGFACE or provider == "huggingface":
@@ -450,6 +470,7 @@ class ChatbotWrapper:
     def get_model_info(self, model: str) -> Dict[str, Any]:
         """
         Get information about a specific model
+        Uses the comprehensive models registry if available, falls back to basic config
 
         Args:
             model: Model identifier
@@ -457,6 +478,44 @@ class ChatbotWrapper:
         Returns:
             Dictionary with model information
         """
+        # Try to use models registry first (comprehensive information)
+        try:
+            from models.models_registry import get_model_info as registry_get_info
+            model_info = registry_get_info(model)
+            if model_info:
+                # Convert ModelInfo dataclass to dict for compatibility
+                result = {
+                    "model_id": model_info.model_id,
+                    "name": model_info.name,
+                    "provider": model_info.provider,
+                    "type": model_info.type.value,
+                    "description": model_info.description,
+                    "access_method": model_info.access_method.value,
+                }
+                if model_info.api_endpoint:
+                    result["api_endpoint"] = {
+                        "url": model_info.api_endpoint.url,
+                        "method": model_info.api_endpoint.method,
+                        "auth_required": model_info.api_endpoint.auth_required,
+                        "rate_limit": model_info.api_endpoint.rate_limit,
+                    }
+                if model_info.specs:
+                    result["specs"] = {
+                        "parameters": model_info.specs.parameters,
+                        "context_window": model_info.specs.context_window,
+                        "architecture": model_info.specs.architecture,
+                    }
+                result["license"] = model_info.license.value if model_info.license else None
+                result["free_tier_available"] = model_info.free_tier_available
+                result["recommended_use_cases"] = model_info.recommended_use_cases
+                result["limitations"] = model_info.limitations
+                result["documentation_url"] = model_info.documentation_url
+                return result
+        except ImportError:
+            # Models registry not available, fall back to basic config
+            pass
+        
+        # Fallback to basic config
         if model in HUGGINGFACE_CHATBOT_MODELS:
             return HUGGINGFACE_CHATBOT_MODELS[model]
         elif model in OPENAI_CHATBOT_MODELS:

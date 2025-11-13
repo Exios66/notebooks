@@ -406,25 +406,79 @@ response = wrapper.chat(
 
 ## Available Models
 
+### Models Registry
+
+The Chatbot API Wrapper includes a comprehensive **Models Registry** (`models/models_registry.py`) with detailed information about all supported models, including:
+
+- Full API endpoints and access methods
+- Model specifications (parameters, context windows, architecture)
+- Licensing information
+- Cost information and free tier availability
+- Recommended use cases and limitations
+- Documentation links
+
+**Access the Models Registry:**
+
+```python
+from models.models_registry import (
+    get_model_info,
+    list_models_by_provider,
+    search_models,
+    get_free_models,
+    get_local_models,
+)
+
+# Get detailed model information
+model_info = get_model_info("gpt-3.5-turbo")
+print(f"Context Window: {model_info.specs.context_window}")
+print(f"API Endpoint: {model_info.api_endpoint.url}")
+
+# Search for models
+results = search_models("instruction")
+
+# Find free tier models
+free_models = get_free_models()
+
+# Find models that can run locally
+local_models = get_local_models()
+```
+
+**Using the CLI script:**
+
+```bash
+python scripts/list-models.py list                    # List all models
+python scripts/list-models.py provider huggingface    # List by provider
+python scripts/list-models.py free                    # List free tier models
+python scripts/list-models.py info gpt-3.5-turbo      # Show model details
+python scripts/list-models.py search instruction      # Search models
+```
+
+The `ChatbotWrapper.get_model_info()` method automatically uses the models registry when available, providing comprehensive information instead of basic config data.
+
 ### OpenAI Models
 
-- `gpt-4`
-- `gpt-4-turbo` (lower cost/faster)
-- `gpt-4-turbo-preview`
-- `gpt-3.5-turbo`
-- `gpt-3.5-turbo-16k` (extended context window)
+- `gpt-4` - Most capable model
+- `gpt-4-turbo` - Faster and more capable GPT-4 variant (128K context)
+- `gpt-4-turbo-preview` - Preview version of GPT-4 Turbo
+- `gpt-4o` - Latest multimodal model optimized for speed and cost
+- `gpt-4o-mini` - Smaller, faster, more affordable GPT-4o
+- `gpt-3.5-turbo` - Fast and efficient (16K context)
+- `gpt-3.5-turbo-16k` - Extended context window
 
-### HuggingFace Models (examples; the actual list may be larger/dynamic)
+### HuggingFace Models
 
-- `meta-llama/Llama-2-7b-chat-hf` (Llama 2 7B)
-- `meta-llama/Llama-2-13b-chat-hf` (Llama 2 13B)
-- `meta-llama/Meta-Llama-3-8B-Instruct` (Llama 3 8B)
-- `mistralai/Mistral-7B-Instruct-v0.2` (Mistral 7B)
-- `microsoft/DialoGPT-large`
-- `google/flan-t5-xxl`
-- `HuggingFaceH4/zephyr-7b-beta`
+- `meta-llama/Llama-2-7b-chat-hf` - Llama 2 7B chat model
+- `meta-llama/Llama-2-13b-chat-hf` - Llama 2 13B chat model
+- `meta-llama/Meta-Llama-3-8B-Instruct` - Llama 3 8B instruction model
+- `mistralai/Mistral-7B-Instruct-v0.2` - Mistral 7B instruction model
+- `mistralai/Mixtral-8x7B-Instruct-v0.1` - Mixtral 8x7B mixture of experts
+- `microsoft/DialoGPT-large` - Microsoft's conversational AI
+- `google/flan-t5-xxl` - Google's instruction-tuned T5 model
+- `google/gemma-7b-it` - Google's Gemma 7B instruction model
+- `HuggingFaceH4/zephyr-7b-beta` - HuggingFace's Zephyr instruction model
+- `Qwen/Qwen2.5-7B-Instruct` - Alibaba's Qwen 2.5 7B instruction model
 
-*(For a full up-to-date list, use `wrapper.list_models()`.)*
+*(For a full up-to-date list with detailed information, use `wrapper.list_models()` or the models registry.)*
 
 ---
 

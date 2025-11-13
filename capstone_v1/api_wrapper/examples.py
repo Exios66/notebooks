@@ -612,6 +612,160 @@ def example_all_starter_prompts():
     print(f"\nAvailable prompts ({len(prompts)} total):\n")
     for i, prompt_name in enumerate(prompts, 1):
         print(f"{i:2d}. {prompt_name}")
+    print()
+
+
+def example_models_registry_info():
+    """Example: Get detailed model information from registry"""
+    print("=" * 50)
+    print("Example 22: Models Registry - Get Model Information")
+    print("=" * 50)
+
+    if not MODELS_REGISTRY_AVAILABLE:
+        print("Models registry not available.\n")
+        return
+
+    model_id = "gpt-3.5-turbo"
+    model_info = get_model_info(model_id)
+
+    if model_info:
+        print(f"\nModel: {model_info.name}")
+        print(f"Provider: {model_info.provider}")
+        print(f"Type: {model_info.type.value}")
+        print(f"Description: {model_info.description}")
+        if model_info.api_endpoint:
+            print(f"API Endpoint: {model_info.api_endpoint.url}")
+            print(f"Rate Limit: {model_info.api_endpoint.rate_limit}")
+        if model_info.specs:
+            print(f"Context Window: {model_info.specs.context_window:,} tokens")
+        print(f"Free Tier: {'Yes' if model_info.free_tier_available else 'No'}")
+        if model_info.cost_per_1k_tokens:
+            print(f"Cost: ${model_info.cost_per_1k_tokens}/1K tokens")
+        print(f"\nRecommended Use Cases:")
+        for use_case in model_info.recommended_use_cases[:3]:
+            print(f"  - {use_case}")
+    print()
+
+
+def example_models_registry_search():
+    """Example: Search models in registry"""
+    print("=" * 50)
+    print("Example 23: Models Registry - Search Models")
+    print("=" * 50)
+
+    if not MODELS_REGISTRY_AVAILABLE:
+        print("Models registry not available.\n")
+        return
+
+    query = "instruction"
+    results = search_models(query)
+
+    print(f"\nSearch results for '{query}': {len(results)} models found\n")
+    for model in results[:5]:
+        print(f"  - {model.name} ({model.provider})")
+        print(f"    {model.description[:70]}...")
+    print()
+
+
+def example_models_registry_free_tier():
+    """Example: Find free tier models"""
+    print("=" * 50)
+    print("Example 24: Models Registry - Free Tier Models")
+    print("=" * 50)
+
+    if not MODELS_REGISTRY_AVAILABLE:
+        print("Models registry not available.\n")
+        return
+
+    free_models = get_free_models()
+    print(f"\nFound {len(free_models)} models with free tier:\n")
+    for model in free_models[:5]:
+        print(f"  - {model.name} ({model.provider})")
+        print(f"    Free Tier: {model.free_tier_limits}")
+        if model.api_endpoint:
+            print(f"    Endpoint: {model.api_endpoint.url}")
+    print()
+
+
+def example_models_registry_local():
+    """Example: Find models that can run locally"""
+    print("=" * 50)
+    print("Example 25: Models Registry - Local Models")
+    print("=" * 50)
+
+    if not MODELS_REGISTRY_AVAILABLE:
+        print("Models registry not available.\n")
+        return
+
+    local_models = get_local_models()
+    print(f"\nFound {len(local_models)} models that can run locally:\n")
+    for model in local_models[:5]:
+        print(f"  - {model.name}")
+        print(f"    Model ID: {model.model_id}")
+        print(f"    Local Endpoint: {model.local_endpoint}")
+        if model.specs:
+            print(f"    Parameters: {model.specs.parameters}B" if model.specs.parameters else "    Parameters: Not disclosed")
+            print(f"    Context Window: {model.specs.context_window:,} tokens")
+    print()
+
+
+def example_models_registry_comparison():
+    """Example: Compare models by provider and type"""
+    print("=" * 50)
+    print("Example 26: Models Registry - Model Comparison")
+    print("=" * 50)
+
+    if not MODELS_REGISTRY_AVAILABLE:
+        print("Models registry not available.\n")
+        return
+
+    hf_models = list_models_by_provider("huggingface")
+    openai_models = list_models_by_provider("openai")
+    chat_models = list_models_by_type(ModelType.CHAT)
+    instruct_models = list_models_by_type(ModelType.INSTRUCT)
+
+    print(f"\nModels by Provider:")
+    print(f"  HuggingFace: {len(hf_models)} models")
+    print(f"  OpenAI: {len(openai_models)} models")
+    print(f"\nModels by Type:")
+    print(f"  Chat: {len(chat_models)} models")
+    print(f"  Instruct: {len(instruct_models)} models")
+    print(f"\nTotal Models in Registry: {len(ALL_MODELS)}")
+    print()
+
+
+def example_models_registry_integration():
+    """Example: Using models registry with ChatbotWrapper"""
+    print("=" * 50)
+    print("Example 27: Models Registry - Integration with Wrapper")
+    print("=" * 50)
+
+    if not MODELS_REGISTRY_AVAILABLE:
+        print("Models registry not available.\n")
+        return
+
+    # Get model info from registry
+    model_id = "gpt-3.5-turbo"
+    model_info = get_model_info(model_id)
+
+    if model_info and os.getenv("OPENAI_API_KEY"):
+        wrapper = ChatbotWrapper(openai_api_key=os.getenv("OPENAI_API_KEY"))
+
+        # Use model info from registry
+        print(f"\nUsing model: {model_info.name}")
+        print(f"Default temperature: {model_info.default_temperature}")
+        print(f"Default max tokens: {model_info.default_max_tokens}")
+
+        response = wrapper.chat(
+            model=model_info.model_id,
+            messages="What is the models registry?",
+            temperature=model_info.default_temperature,
+            max_tokens=model_info.default_max_tokens,
+        )
+        print(f"\nResponse: {response['response'][:200]}...")
+    else:
+        print("\nModel info not found or API key not set.")
+    print()
 
 
 if __name__ == "__main__":
