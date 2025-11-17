@@ -274,7 +274,7 @@ Common issues and solutions for the Chatbot API Wrapper.
 3. Ensure port is correct
 4. Review initial delay and timeout settings
 
-## Performance Issues
+## Performance Troubleshooting
 
 ### Issue: Slow response times
 
@@ -293,7 +293,7 @@ Common issues and solutions for the Chatbot API Wrapper.
 4. Implement connection pooling
 5. Use async clients for concurrent requests
 
-### Issue: High memory usage
+### Issue: Excessive memory usage
 
 **Diagnosis:**
 

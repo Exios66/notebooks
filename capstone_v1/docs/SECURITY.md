@@ -226,7 +226,7 @@ pip list --outdated
 pip-compile --upgrade requirements.txt
 ```
 
-## Compliance
+## Regulatory Compliance
 
 ### GDPR Compliance
 

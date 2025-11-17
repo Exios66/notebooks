@@ -178,7 +178,7 @@ from api_wrapper import ChatbotWrapper
 # Use local models
 wrapper = ChatbotWrapper(
     use_local_hf=True,
-    hf_device="cuda"  # or "cpu"
+    hf_device="cuda"  # or "cpu" if no GPU
 )
 
 response = wrapper.chat(
@@ -218,12 +218,12 @@ HUGGINGFACE_CHATBOT_MODELS = {
 
 ### Common Issues
 
-**1. Import Errors**
+#### 1. Import Errors
 
 - Ensure all dependencies are installed: `pip install -r requirements.txt`
 - Check Python version: `python --version` (should be 3.8+)
 
-### 2. API Key Errors
+#### 2. API Key Errors
 
 - Verify API keys are set correctly
 - Check environment variables: `echo $OPENAI_API_KEY`
@@ -235,13 +235,13 @@ HUGGINGFACE_CHATBOT_MODELS = {
 - Check if model exists on HuggingFace
 - Verify transformers and torch are installed correctly
 
-**4. Network Errors**
+#### 4. Network Errors
 
 - Check internet connection
 - Verify API endpoints are accessible
 - Check firewall settings
 
-### Getting Help
+#### Getting Help
 
 - Review the [API Reference](api-reference.md)
 - Check [Examples](examples.md)

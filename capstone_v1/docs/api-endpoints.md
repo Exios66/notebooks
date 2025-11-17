@@ -459,24 +459,24 @@ history = conv.get_history()
 
 ### Common Error Types
 
-**ValueError**
+#### ValueError
 
 - Missing API keys
 - Invalid model names
 - Invalid parameter values
 
-**Exception**
+#### Exception
 
 - API request failures
 - Network errors
 - Model loading errors
 
-### Error Response Format
+#### Error Response Format
 
 ```python
 {
     "error": "Error message",
-    "type": "ValueError" | "Exception"
+    "type": "ValueError" \| "Exception"
 }
 ```
 

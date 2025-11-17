@@ -141,7 +141,7 @@ model = AutoModelForCausalLM.from_pretrained(model_id)
 - **No credit card required**
 - **Gated models**: Require account approval
 
-### OpenAI
+### OpenAI Usage and Pricing
 
 - **No free tier** (requires paid API access)
 - **Pricing**: Pay-per-use based on tokens
