@@ -1,0 +1,207 @@
+"""
+OpenAI API Client for chatbot interactions
+"""
+
+from typing import Dict, List, Optional, Union, Any, Iterator
+import openai
+from openai import OpenAI
+
+from .config import (
+    OPENAI_API_KEY,
+    DEFAULT_TEMPERATURE,
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_TOP_P,
+)
+from .logger import get_logger
+from .exceptions import (
+    APIError,
+    RateLimitError,
+    AuthenticationError,
+    ModelNotFoundError,
+    NetworkError,
+    TimeoutError,
+    QuotaExceededError,
+    ProviderError,
+)
+
+
+class OpenAIClient:
+    """
+    Client for interacting with OpenAI's chat models
+    """
+
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
+        """
+        Initialize OpenAI client
+
+        Args:
+            api_key: OpenAI API key (if None, uses OPENAI_API_KEY env var)
+            base_url: Custom base URL for API (optional, for compatible APIs)
+        """
+        self.logger = get_logger("api_wrapper.openai_client")
+        self.api_key = api_key or OPENAI_API_KEY
+        if not self.api_key:
+            raise AuthenticationError(
+                "OpenAI API key is required. Set OPENAI_API_KEY environment variable or pass api_key parameter."
+            )
+
+        self.client = OpenAI(api_key=self.api_key, base_url=base_url)
+        self.logger.info("OpenAI client initialized successfully")
+
+    def chat(
+        self,
+        model: str,
+        messages: Union[str, List[Dict[str, str]]],
+        temperature: float = DEFAULT_TEMPERATURE,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+        top_p: float = DEFAULT_TOP_P,
+        frequency_penalty: float = 0.0,
+        presence_penalty: float = 0.0,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """
+        Generate a chat response using OpenAI model
+
+        Args:
+            model: OpenAI model identifier (e.g., 'gpt-4', 'gpt-3.5-turbo')
+            messages: Either a string prompt or list of message dicts with 'role' and 'content'
+            temperature: Sampling temperature (0.0 to 2.0)
+            max_tokens: Maximum tokens to generate
+            top_p: Nucleus sampling parameter
+            frequency_penalty: Frequency penalty (-2.0 to 2.0)
+            presence_penalty: Presence penalty (-2.0 to 2.0)
+            **kwargs: Additional parameters for OpenAI API
+
+        Returns:
+            Dictionary with 'response' and metadata
+        """
+        # Format messages
+        if isinstance(messages, str):
+            formatted_messages = [{"role": "user", "content": messages}]
+        else:
+            formatted_messages = messages
+
+        try:
+            self.logger.debug(f"Sending request to OpenAI API: {model}")
+            response = self.client.chat.completions.create(
+                model=model,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty,
+                **kwargs,
+            )
+
+            self.logger.debug(f"Successfully received response from {model}")
+            return {
+                "response": response.choices[0].message.content,
+                "model": model,
+                "provider": "openai",
+                "usage": {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                },
+                "finish_reason": response.choices[0].finish_reason,
+            }
+        except openai.RateLimitError as e:
+            raise RateLimitError(
+                f"OpenAI API rate limit exceeded: {str(e)}",
+                details={"model": model, "error": str(e)}
+            )
+        except openai.AuthenticationError as e:
+            raise AuthenticationError(
+                f"OpenAI API authentication failed: {str(e)}",
+                details={"model": model, "error": str(e)}
+            )
+        except openai.NotFoundError as e:
+            raise ModelNotFoundError(
+                model,
+                f"OpenAI model not found: {str(e)}",
+                details={"error": str(e)}
+            )
+        except openai.APIConnectionError as e:
+            raise NetworkError(
+                f"OpenAI API connection error: {str(e)}",
+                details={"model": model, "error": str(e)}
+            )
+        except openai.APITimeoutError as e:
+            raise TimeoutError(
+                f"OpenAI API request timeout: {str(e)}",
+                details={"model": model, "error": str(e)}
+            )
+        except openai.APIError as e:
+            # Check for quota exceeded
+            if "quota" in str(e).lower() or "billing" in str(e).lower():
+                raise QuotaExceededError(
+                    f"OpenAI API quota exceeded: {str(e)}",
+                    details={"model": model, "error": str(e)}
+                )
+            raise APIError(
+                f"OpenAI API request failed: {str(e)}",
+                details={"model": model, "error": str(e), "error_type": type(e).__name__}
+            )
+        except Exception as e:
+            raise ProviderError(
+                "openai",
+                f"Unexpected error in OpenAI client: {str(e)}",
+                details={"model": model, "error": str(e), "error_type": type(e).__name__}
+            )
+
+    def stream_chat(
+        self,
+        model: str,
+        messages: Union[str, List[Dict[str, str]]],
+        temperature: float = DEFAULT_TEMPERATURE,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+        top_p: float = DEFAULT_TOP_P,
+        **kwargs,
+    ) -> Iterator[str]:
+        """
+        Stream chat responses (yields tokens as they're generated)
+
+        Args:
+            model: OpenAI model identifier
+            messages: Either a string prompt or list of message dicts
+            temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
+            top_p: Nucleus sampling parameter
+            **kwargs: Additional parameters
+
+        Yields:
+            String chunks of the response
+        """
+        # Format messages
+        if isinstance(messages, str):
+            formatted_messages = [{"role": "user", "content": messages}]
+        else:
+            formatted_messages = messages
+
+        try:
+            stream = self.client.chat.completions.create(
+                model=model,
+                messages=formatted_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stream=True,
+                **kwargs,
+            )
+
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
+        except Exception as e:
+            raise Exception(f"OpenAI streaming request failed: {str(e)}")
+
+    def list_available_models(self) -> List[str]:
+        """List available OpenAI models"""
+        from .config import OPENAI_CHATBOT_MODELS
+        return list(OPENAI_CHATBOT_MODELS.keys())
+
+    def get_model_info(self, model: str) -> Dict[str, Any]:
+        """Get information about a specific model"""
+        from .config import OPENAI_CHATBOT_MODELS
+        return OPENAI_CHATBOT_MODELS.get(model, {})

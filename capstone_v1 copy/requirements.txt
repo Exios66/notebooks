@@ -1,0 +1,40 @@
+# Core dependencies for API wrapper
+requests>=2.31.0
+openai>=1.0.0
+transformers>=4.30.0
+torch>=2.0.0
+accelerate>=0.20.0
+
+# Optional dependencies for enhanced functionality
+sentencepiece>=0.1.99  # For some tokenizers
+protobuf>=3.20.0  # Required by some transformers models
+
+# Visualization dependencies
+numpy>=1.24.0
+scipy>=1.10.0  # Required by scikit-learn
+matplotlib>=3.7.0
+scikit-learn>=1.3.0
+plotly>=5.14.0
+
+# Dataset loading dependencies
+datasets>=2.14.0  # HuggingFace datasets library
+huggingface-hub>=0.16.0  # For accessing HuggingFace Hub
+pandas>=2.0.0  # For data manipulation and Seaborn datasets
+seaborn>=0.12.0  # For Seaborn built-in datasets
+openpyxl>=3.1.0  # For Excel file support (optional)
+pyarrow>=12.0.0  # For Parquet file support (optional)
+
+# Production dependencies
+pydantic>=2.0.0  # Configuration validation (optional but recommended)
+tenacity>=8.0.0  # Retry logic (optional but recommended)
+cachetools>=5.0.0  # Caching (optional but recommended)
+python-dotenv>=1.0.0  # Environment variables
+structlog>=23.0.0  # Structured logging (optional)
+httpx>=0.24.0  # Async HTTP client (optional)
+
+# Testing dependencies (optional, for development)
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.10.0
+
